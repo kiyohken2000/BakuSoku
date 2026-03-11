@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "react-native-boilerplate",
-    "slug": "react-native-boilerplate",
+    "name": "BakuSoku",
+    "slug": "BakuSoku",
     "privacy": "public",
     "platforms": [
       "ios",
@@ -24,17 +24,18 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "reactnative.expo.boilerplate",
+      "supportsTablet": false,
+      "bundleIdentifier": "net.votepurchase.bakusoku",
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Use the photo library to change your avatar.",
-        "CFBundleDevelopmentRegion": "ja_JP"
+        "CFBundleDevelopmentRegion": "ja_JP",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "userInterfaceStyle": "automatic"
     },
     "android": {
-      "package": "reactnative.expo.boilerplate",
+      "package": "net.votepurchase.bakusoku",
       "versionCode": 1,
       "userInterfaceStyle": "automatic",
       "permissions": [
@@ -58,6 +59,7 @@
     "plugins": [
       "expo-font",
       "expo-asset",
+      "expo-notifications",
       "expo-web-browser"
     ]
   }
