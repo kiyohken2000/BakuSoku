@@ -2,6 +2,8 @@
 
 最終更新: 2026-03-11
 
+[Sukikira - GitHub](https://github.com/kiyohken2000/sukikira)
+
 ---
 
 ## 全体ステータス
@@ -35,7 +37,7 @@
 
 ## フェーズ 1: 環境構築
 
-- [ ] `apps/mobile` に Expo プロジェクト作成（ボイラープレートベース）
+- [x] `apps/mobile` に Expo プロジェクト作成（ボイラープレートベース）
 - [ ] React Navigation セットアップ（タブ + スタック）
 - [ ] ThemeContext（スキキラから流用、darkColors/lightColors）
 - [ ] SettingsContext（NG ワード・お気に入り・既読管理・履歴）
