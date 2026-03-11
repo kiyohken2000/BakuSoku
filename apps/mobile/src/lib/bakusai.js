@@ -281,8 +281,13 @@ export function parseThreadList(html) {
     }
   }
 
-  // weather_thr_list_box layout fallback (e.g. bid=5877 weather forecast archive)
-  if (threads.length === 0 && html.includes('weather_thr_list_box')) {
+  // image-board layout fallback:
+  //   weather_thr_list_box       (e.g. bid=5877 weather forecast archive)
+  //   photograph_thr_list_wrapper (e.g. bid=5830 landscape photo boards)
+  const isImageBoard =
+    html.includes('weather_thr_list_box') ||
+    html.includes('photograph_thr_list_wrapper')
+  if (threads.length === 0 && isImageBoard) {
     const wRegex =
       /<li>\s*<a\s+href="(\/thr_res\/[^"]*\/tid=(\d+)[^"]*)"[^>]*>([\s\S]*?)<\/a>/g
     let wm
@@ -291,14 +296,19 @@ export function parseThreadList(html) {
       const tid = wm[2]
       const inner = wm[3]
 
-      const titleMatch = inner.match(/<div class="title">\s*([\s\S]*?)\s*<\/div>/)
+      // title: weather layout uses <div class="title">,
+      //        photo layout uses <div class="photograph_thr_title">
+      const titleMatch =
+        inner.match(/<div class="title">\s*([\s\S]*?)\s*<\/div>/) ||
+        inner.match(/<div class="photograph_thr_title">\s*([\s\S]*?)\s*<\/div>/) ||
+        inner.match(/class="photograph_image"[^>]*alt="([^"]+)"/)
       const title = titleMatch ? decodeEntities(titleMatch[1].trim()) : ''
 
       let updatedAt = ''
       const timeDivMatch = inner.match(/<div class="time">([\s\S]*?)<\/div>/)
       if (timeDivMatch) {
         const beforeChart = timeDivMatch[1].split('<span class="thrimg_chart')[0]
-        updatedAt = beforeChart.replace(/<[^>]*>/g, '').trim()
+        updatedAt = decodeEntities(beforeChart.replace(/<[^>]*>/g, '').trim())
       }
 
       const spanNums = [...inner.matchAll(/<span>([\d,]+)<\/span>/g)].map((n) =>
