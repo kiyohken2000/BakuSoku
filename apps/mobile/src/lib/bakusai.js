@@ -344,8 +344,6 @@ export function parseThread(html) {
     const rridMatch = chunk.match(/^(\d+)_block/)
     if (!rridMatch) continue
     const rrid = parseInt(rridMatch[1], 10)
-    // rrid=0 はプレースホルダー
-    if (rrid === 0) continue
 
     // 日時: itemprop="commentTime" スパン内テキスト
     // quote（引用）レスには commentTime が存在しないためスキップ → 重複排除が不要になる
