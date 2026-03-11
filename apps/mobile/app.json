@@ -18,7 +18,8 @@
     "newArchEnabled": true,
     "updates": {
       "enabled": true,
-      "fallbackToCacheTimeout": 10000
+      "fallbackToCacheTimeout": 10000,
+      "url": "https://u.expo.dev/bef622b4-35d6-48d5-b236-7fac07e3e689"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -61,6 +62,11 @@
       "expo-asset",
       "expo-notifications",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bef622b4-35d6-48d5-b236-7fac07e3e689"
+      }
+    }
   }
 }
