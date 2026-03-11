@@ -119,10 +119,50 @@ function decodeEntities(str) {
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
     .replace(/&nbsp;/g, ' ')
+    .replace(/&ensp;/g, ' ')
+    .replace(/&emsp;/g, ' ')
+    .replace(/&thinsp;/g, ' ')
+    .replace(/&apos;/g, "'")
+    .replace(/&mdash;/g, '—')
+    .replace(/&ndash;/g, '–')
+    .replace(/&hellip;/g, '…')
 }
 
 function stripTags(html) {
   return decodeEntities(html.replace(/<[^>]*>/g, ''))
+}
+
+// bbstop/areatop リンク内HTMLから板名を抽出する
+// 構造A (inline): <div class="listNumb">🔫</div><div class="brdName ">板名</div>
+// 構造B (multiline): <div class="listNumb">\n  🛩️\n</div>\n<div class="brdName common_categories_text">板名</div>
+// listNumb は絵文字アイコンなので除外し、brdName の中身を優先取得する
+// 注意: "brdNameWrap" に誤マッチしないよう brdName の直後が " or スペースのみ許可
+function extractBoardName(innerHtml) {
+  // class="brdName" または class="brdName someOtherClass" にマッチ (brdNameWrap は除外)
+  const brdNameMatch = innerHtml.match(/class="brdName(?=["\s])[^"]*"[^>]*>([\s\S]*?)<\/div>/)
+  if (brdNameMatch) {
+    return decodeEntities(stripTags(brdNameMatch[1])).trim()
+  }
+  // フォールバック: 全タグ除去
+  return stripTags(innerHtml)
+}
+
+// areatop/bbstop のアンカーテキストから正しい板名だけを抽出する
+// - "もっと見る" 系リンクは null を返す（除外）
+// - "PICKUP!\n  板名\n  記事タイトル" は板名行を返す
+function cleanBoardName(raw) {
+  if (!raw) return null
+  if (raw.includes('もっと見る') || raw.includes('もっと\u0020見る')) return null
+  const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (lines.length === 0) return null
+  if (lines[0] === 'PICKUP!' && lines.length > 1) return lines[1]
+  return lines[0]
+}
+
+// プロモーション要素かどうか判定
+// id="view_user_new_columns" → 全カテゴリに貼られる「カテゴリーダーの独り言」宣伝リンク（スレなし）
+function isPromotionLink(innerHtml) {
+  return innerHtml.includes('view_user_new_columns') || innerHtml.includes('view_user_landscape')
 }
 
 // ------------------------------------
@@ -150,7 +190,8 @@ export function parseAreaTop(html) {
   const boardRegex =
     /href="\/thr_tl\/acode=(\d+)\/ctgid=(\d+)\/bid=(\d+)\/?"[^>]*>([\s\S]*?)<\/a>/g
   while ((m = boardRegex.exec(html)) !== null) {
-    const name = stripTags(m[4]).trim()
+    if (isPromotionLink(m[4])) continue
+    const name = cleanBoardName(extractBoardName(m[4]))
     if (name && !boards.find((b) => b.bid === parseInt(m[3], 10))) {
       boards.push({
         acode: parseInt(m[1], 10),
@@ -176,7 +217,8 @@ export function parseBoards(html) {
     /href="\/thr_tl\/acode=(\d+)\/ctgid=(\d+)\/bid=(\d+)\/?"[^>]*>([\s\S]*?)<\/a>/g
   let m
   while ((m = regex.exec(html)) !== null) {
-    const name = stripTags(m[4]).trim()
+    if (isPromotionLink(m[4])) continue
+    const name = cleanBoardName(extractBoardName(m[4]))
     if (name && !boards.find((b) => b.bid === parseInt(m[3], 10))) {
       boards.push({
         acode: parseInt(m[1], 10),
@@ -191,7 +233,8 @@ export function parseBoards(html) {
 
 export function parseThreadList(html) {
   const threads = []
-  const parts = html.split('<li data-tid=')
+  // 実際の HTML は <li  data-tid="..." (スペース複数) なのでregexで分割
+  const parts = html.split(/<li\s+data-tid=/)
 
   for (let i = 1; i < parts.length; i++) {
     const chunk = parts[i]
@@ -202,56 +245,78 @@ export function parseThreadList(html) {
     const hrefMatch = chunk.match(/href="(\/thr_res\/[^"]+)"/)
     const href = hrefMatch ? hrefMatch[1] : ''
 
-    const titleMatch = chunk.match(/thr_status_icon"[^>]*title="([^"]+)"/)
+    // class="thr_status_icon" title="..." または title="..." class="thr_status_icon" 両方に対応
+    const titleMatch =
+      chunk.match(/class="thr_status_icon"[^>]*title="([^"]*)"/) ||
+      chunk.match(/title="([^"]*)"[^>]*class="[^"]*thr_status_icon/)
     const title = titleMatch ? decodeEntities(titleMatch[1]) : ''
 
     let updatedAt = ''
-    let views = 0
     let resCount = 0
 
     const udIdx = chunk.indexOf('class="ttUdTime"')
     if (udIdx !== -1) {
       const udBlockStart = chunk.indexOf('>', udIdx) + 1
-      const udBlock = chunk.substring(udBlockStart, udBlockStart + 500)
+      const udBlock = chunk.substring(udBlockStart, udBlockStart + 600)
 
       const firstSpan = udBlock.indexOf('<span')
       if (firstSpan !== -1) {
-        updatedAt = udBlock.substring(0, firstSpan).replace(/<[^>]*>/g, '').trim()
+        // &ensp; などのエンティティをデコードしてから不要スペースを除去
+        updatedAt = decodeEntities(
+          udBlock.substring(0, firstSpan).replace(/<[^>]*>/g, '').trim(),
+        ).trim()
       }
 
       const nums = [...udBlock.matchAll(/<span>([\d,]+)<\/span>/g)].map((n) =>
         parseInt(n[1].replace(/,/g, ''), 10),
       )
-      views = nums[0] || 0
-      resCount = nums[1] || 0
+      resCount = nums[nums.length - 1] || 0
     }
 
+    // 固定スレ: row_fixed_icon クラスが存在する場合
+    const isPinned = chunk.includes('row_fixed_icon')
+
     if (tid && title) {
-      threads.push({ tid, title, href, updatedAt, views, resCount })
+      threads.push({ tid, title, href, updatedAt, resCount, isPinned })
     }
   }
 
-  return threads
+  // 次ページ URL: paging_nex_res_and_button の href から抽出
+  let nextPage = null
+  const pagingM = html.match(
+    /class="paging_nex_res_and_button"[\s\S]{0,600}?href="(\/thr_tl\/[^"]+)"/,
+  )
+  if (pagingM) nextPage = pagingM[1]
+
+  return { threads, nextPage }
 }
 
 export function parseThread(html) {
   const responses = []
-  const parts = html.split('<div id="res')
+  // 実際の HTML は <li id="res{rrid}_block" 形式
+  const parts = html.split(/<li\s+id="res/)
+  let skippedEmpty = 0 // eslint-disable-line no-unused-vars
 
   for (let i = 1; i < parts.length; i++) {
     const chunk = parts[i]
     const rridMatch = chunk.match(/^(\d+)_block/)
     if (!rridMatch) continue
     const rrid = parseInt(rridMatch[1], 10)
+    // rrid=0 はプレースホルダー
+    if (rrid === 0) continue
 
-    const dateMatch = chunk.match(/itemprop="commentTime"[^>]*>([\s\S]*?)<\/span>/)
-    const date = dateMatch ? stripTags(dateMatch[1]).trim() : ''
+    // 日時: itemprop="commentTime" スパン内テキスト
+    // quote（引用）レスには commentTime が存在しないためスキップ → 重複排除が不要になる
+    const commentTimeMatch = chunk.match(/itemprop="commentTime"[^>]*>([\s\S]*?)<\/span>/)
+    if (!commentTimeMatch) continue // quote レスをスキップ
+    const date = commentTimeMatch[1].trim()
 
     let body = ''
-    const bodyMarker = '<div class="res_body">'
+    const bodyMarker = 'class="res_body"'
     const bodyStart = chunk.indexOf(bodyMarker)
     if (bodyStart !== -1) {
-      const bodyContent = chunk.substring(bodyStart + bodyMarker.length)
+      const afterMarker = chunk.indexOf('>', bodyStart) + 1
+      const bodyContent = chunk.substring(afterMarker)
       const bodyEnd = bodyContent.indexOf('</div>')
       if (bodyEnd !== -1) {
         body = bodyContent
@@ -264,20 +329,28 @@ export function parseThread(html) {
           .replace(/&gt;/g, '>')
           .replace(/&quot;/g, '"')
           .replace(/&nbsp;/g, ' ')
+          .replace(/\u00a0/g, ' ')  // non-breaking space
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0)
+          .join('\n')
           .trim()
       }
     }
 
+    if (!body) {
+      skippedEmpty++
+      continue
+    }
+
+    // 投稿者名: class="name" div 内の最初の <span> テキスト
     let name = '匿名さん'
-    const nameMarker = '<div class="name">'
-    const nameStart = chunk.indexOf(nameMarker)
-    if (nameStart !== -1) {
-      const nameContent = chunk.substring(nameStart + nameMarker.length)
-      const nameEnd = nameContent.indexOf('</div>')
-      if (nameEnd !== -1) {
-        const parsed = stripTags(nameContent.substring(0, nameEnd))
-          .replace(/^\[|\]$/g, '')
-          .trim()
+    const nameAreaIdx = chunk.indexOf('class="name"')
+    if (nameAreaIdx !== -1) {
+      const nameArea = chunk.substring(nameAreaIdx, nameAreaIdx + 400)
+      const spanMatch = nameArea.match(/<span[^>]*>([^<]+)<\/span>/)
+      if (spanMatch) {
+        const parsed = spanMatch[1].trim()
         if (parsed) name = parsed
       }
     }
@@ -285,22 +358,58 @@ export function parseThread(html) {
     responses.push({ rrid, date, body, name })
   }
 
+  // commentTime のないレス（quote）はスキップ済みなので重複は原則発生しないが念のため除去
+  const seen = new Set()
+  const uniqueResponses = responses.filter((r) => {
+    if (seen.has(r.rrid)) return false
+    seen.add(r.rrid)
+    return true
+  })
+
   const formFields = parseFormFields(html)
 
   const titleMatch = html.match(/<title>([^<]+)<\/title>/)
-  const pageTitle = titleMatch
-    ? decodeEntities(titleMatch[1].split('｜')[0].trim())
-    : ''
+  const rawTitle = titleMatch ? decodeEntities(titleMatch[1]) : ''
+  const pageTitle = rawTitle.split('｜')[0].trim()
+
+  // タイトルから総レス数を抽出: "加茂農林高等学校 ③ - 新潟同窓会掲示板\n951レス｜..."
+  const totalCountMatch = rawTitle.match(/(\d+)レス/)
+  const totalCount = totalCountMatch ? parseInt(totalCountMatch[1], 10) : null
 
   const tidMatch = html.match(/var thr_thread_tid = '(\d+)'/)
   const bidMatch = html.match(/var thr_bbs_bid = '(\d+)'/)
 
+  // paging_nex_res_and_button から「次のページ」リンクを検出
+  // このdivが存在する = 次ページあり、存在しない = 最終ページ
+  // rw=1 モード: /p=N/tp=1/rw=1/
+  // 通常モード:  /p=N/tp=1/  (rw=1 なし)
+  let nextRw1Page = null
+  let nextNormalPage = null
+  const pagingIdx = html.indexOf('class="paging_nex_res_and_button"')
+  if (pagingIdx !== -1) {
+    // div の開始位置から最大 2000 文字以内で href を探す
+    const pagingSection = html.substring(pagingIdx, pagingIdx + 2000)
+    const hrefMatch = pagingSection.match(/href="([^"]*\/thr_res\/[^"]+)"/)
+    if (hrefMatch) {
+      const nextUrl = hrefMatch[1]
+      const rw1Match = nextUrl.match(/\/p=(\d+)\/tp=1\/rw=1\//)
+      const normalMatch = nextUrl.match(/\/p=(\d+)\/tp=1\/(?!rw)/)
+      if (rw1Match) nextRw1Page = parseInt(rw1Match[1], 10)
+      else if (normalMatch) nextNormalPage = parseInt(normalMatch[1], 10)
+    }
+  }
+
+  // console.log('[parseThread] nextRw1Page:', nextRw1Page, 'nextNormalPage:', nextNormalPage)
+
   return {
-    responses,
+    responses: uniqueResponses,
     formFields,
     pageTitle,
     tid: tidMatch ? tidMatch[1] : '',
     bid: bidMatch ? bidMatch[1] : '',
+    totalCount,     // スレッドの総レス数 (null = 不明)
+    nextRw1Page,   // rw=1 次ページ番号 (null = 最終ページ)
+    nextNormalPage, // 通常 次ページ番号 (null = 最終ページ)
   }
 }
 
@@ -332,17 +441,62 @@ function parseFormFields(html) {
 
 export function parseSearch(html) {
   const results = []
-  const seen = new Set()
-  const regex = /href="(\/thr_res\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/g
+  const seenTid = new Set()
+
+  // 検索結果は <li> 内の <a href="/thr_res/..."> + <h2 id="tid-NNNNN"> 構造
+  const liRegex = /<li>\s*<a\s+href="(\/thr_res\/[^"]+)">([\s\S]*?)<\/a>/g
   let m
-  while ((m = regex.exec(html)) !== null) {
+  while ((m = liRegex.exec(html)) !== null) {
     const href = m[1]
-    const text = stripTags(m[2]).trim()
-    if (href && text && text.length > 2 && !seen.has(href)) {
-      seen.add(href)
-      results.push({ href, text })
+    const content = m[2]
+    const h2Match = content.match(/id="tid-(\d+)"[^>]*>([\s\S]*?)<\/h2>/)
+    if (!h2Match) continue
+    const tid = h2Match[1]
+    const title = stripTags(h2Match[2]).trim()
+    if (tid && title && !seenTid.has(tid)) {
+      seenTid.add(tid)
+      // views / resCount: span内数値 (views が先, resCount が後)
+      const numsMatch = [...content.matchAll(/<span>(\d+)<\/span>/g)].map((n) =>
+        parseInt(n[1], 10),
+      )
+      const resCount = numsMatch[numsMatch.length - 1] || 0
+
+      // 最終更新日時: class="ttUdTime" または日付っぽいテキスト (YYYY/MM/DD HH:MM 形式)
+      let updatedAt = ''
+      const udIdx = content.indexOf('class="ttUdTime"')
+      if (udIdx !== -1) {
+        const udBlockStart = content.indexOf('>', udIdx) + 1
+        const udBlock = content.substring(udBlockStart, udBlockStart + 400)
+        const firstSpan = udBlock.indexOf('<span')
+        const raw = firstSpan !== -1
+          ? udBlock.substring(0, firstSpan)
+          : udBlock.substring(0, 100)
+        updatedAt = decodeEntities(raw.replace(/<[^>]*>/g, '').trim()).trim()
+      }
+      if (!updatedAt) {
+        // フォールバック: YYYY/MM/DD HH:MM パターンを直接検索
+        const dateM = content.match(/(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2})/)
+        if (dateM) updatedAt = dateM[1]
+      }
+
+      results.push({ tid, title, href, resCount, updatedAt })
     }
   }
+
+  // フォールバック: 上記で0件の場合は thr_res リンクのテキストを使用
+  if (results.length === 0) {
+    const seen = new Set()
+    const fallback = /href="(\/thr_res\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/g
+    while ((m = fallback.exec(html)) !== null) {
+      const href = m[1]
+      const text = stripTags(m[2]).trim()
+      if (href && text && text.length > 2 && !seen.has(href)) {
+        seen.add(href)
+        results.push({ tid: '', title: text, href, resCount: 0, updatedAt: '' })
+      }
+    }
+  }
+
   return results
 }
 
@@ -351,8 +505,36 @@ export function parseSearch(html) {
 // ------------------------------------
 
 export async function getAreaTop(acode) {
-  const html = await doGet(`/areatop/acode=${acode}/`)
-  return parseAreaTop(html)
+  // 通常 + 成人(/ctgtop_a/) + ギャンブル(/ctgtop_g/) を並列フェッチ
+  const [mainHtml, adultHtml, gambleHtml] = await Promise.all([
+    doGet(`/areatop/acode=${acode}/`),
+    doGet(`/ctgtop_a/acode=${acode}/`).catch(() => ''),
+    doGet(`/ctgtop_g/acode=${acode}/`).catch(() => ''),
+  ])
+
+  const main = parseAreaTop(mainHtml)
+  const adult = parseAreaTop(adultHtml)
+  const gamble = parseAreaTop(gambleHtml)
+
+  // カテゴリを重複なくマージ（成人・ギャンブルは末尾に追加）
+  const allCategories = [...main.categories]
+  const allBoardsByCtgid = { ...main.boardsByCtgid }
+  const restrictedCtgids = new Set()
+
+  for (const cat of [...adult.categories, ...gamble.categories]) {
+    restrictedCtgids.add(cat.ctgid)
+    if (!allCategories.find((c) => c.ctgid === cat.ctgid)) {
+      allCategories.push(cat)
+    }
+  }
+  for (const [ctgid, boards] of Object.entries({
+    ...adult.boardsByCtgid,
+    ...gamble.boardsByCtgid,
+  })) {
+    if (!allBoardsByCtgid[ctgid]) allBoardsByCtgid[ctgid] = boards
+  }
+
+  return { categories: allCategories, boardsByCtgid: allBoardsByCtgid, restrictedCtgids }
 }
 
 export async function getBoards(acode, ctgid) {
@@ -376,6 +558,41 @@ export async function getThread(acode, ctgid, bid, tid, page = null) {
       : `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/tp=1/`
   const html = await doGet(path)
   return parseThread(html)
+}
+
+// 最初から表示: bakusai 公式の rw=1 パラメータを使用 (最古ページから表示)
+export async function getThreadFromStart(acode, ctgid, bid, tid, page = null) {
+  const path = page
+    ? `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/p=${page}/tp=1/rw=1/`
+    : `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/tp=1/rw=1/`
+  const html = await doGet(path)
+  const result = parseThread(html)
+  console.log('[bakusai] rw=1 page:', page ?? 1,
+    'responses:', result.responses.length,
+    'nextRw1Page:', result.nextRw1Page)
+  return result
+}
+
+// 新着チェック: スレの最新ページ (tp=1) を取得し、最大 RRID を返す
+// 失敗時は null を返す
+export async function checkThreadLatestRrid(acode, ctgid, bid, tid) {
+  try {
+    const data = await getThread(acode, ctgid, bid, tid)
+    if (!data.responses || data.responses.length === 0) return null
+    return Math.max(...data.responses.map((r) => r.rrid))
+  } catch {
+    return null
+  }
+}
+
+// >>NNN アンカーポップアップ用: 単一レスを取得
+// /thr_res_show/acode=N/ctgid=N/bid=N/tid=N/rrid=N/ → parseThread の responses[0]
+export async function getResShow(acode, ctgid, bid, tid, rrid) {
+  const html = await doGet(
+    `/thr_res_show/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/rrid=${rrid}/`,
+  )
+  const result = parseThread(html)
+  return result.responses[0] || null
 }
 
 export async function getRatingList(tid, rrids) {

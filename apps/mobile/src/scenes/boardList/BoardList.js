@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
@@ -8,24 +8,62 @@ import {
   StyleSheet,
   ActivityIndicator,
   Modal,
-  ScrollView,
   StatusBar,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import * as Haptics from 'expo-haptics'
+import FontIcon from 'react-native-vector-icons/FontAwesome'
 import { getAreaTop, getBoards, AREA_NAMES, AREA_CODES } from 'lib/bakusai'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
 
+// ─── サブコンポーネント（再レンダー抑制） ────────────────────────────────
+
+const BoardItem = React.memo(({ item, isFav, onPress, theme }) => (
+  <TouchableOpacity
+    style={[
+      styles.boardItem,
+      { backgroundColor: theme.surface, borderBottomColor: theme.border },
+    ]}
+    onPress={() => onPress(item)}
+    activeOpacity={0.7}
+  >
+    <Text style={[styles.boardName, { color: isFav ? theme.accent : theme.text }]}>
+      {item.name}
+    </Text>
+    <FontIcon name="chevron-right" size={13} color={theme.subText} />
+  </TouchableOpacity>
+))
+
+const SectionHeader = React.memo(({ section, theme }) => (
+  <View
+    style={[
+      styles.sectionHeader,
+      { backgroundColor: theme.bg, borderBottomColor: theme.border },
+    ]}
+  >
+    {section.isFav ? (
+      <View style={styles.sectionTitleRow}>
+        <FontIcon name="star" size={12} color={theme.accent} style={{ marginRight: 6 }} />
+        <Text style={[styles.sectionTitle, { color: theme.subText }]}>お気に入り</Text>
+      </View>
+    ) : (
+      <Text style={[styles.sectionTitle, { color: theme.subText }]}>{section.title}</Text>
+    )}
+  </View>
+))
+
+// ─── メインコンポーネント ──────────────────────────────────────────────
+
 export default function BoardList() {
   const navigation = useNavigation()
-  const { acode, setAcode, favorites } = useSettings()
+  const { acode, setAcode, favorites, showRestricted } = useSettings()
   const { theme, isDark } = useTheme()
+  const insets = useSafeAreaInsets()
 
-  const [sections, setSections] = useState([])
-  const [categories, setCategories] = useState([])
-  const [expandedBoards, setExpandedBoards] = useState({})
-  const [loadingCtgid, setLoadingCtgid] = useState(null)
+  const [allSections, setAllSections] = useState([])
+  const [restrictedCtgids, setRestrictedCtgids] = useState(new Set())
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showRegionModal, setShowRegionModal] = useState(false)
@@ -37,23 +75,37 @@ export default function BoardList() {
   const loadCategories = async () => {
     setIsLoading(true)
     setError(null)
-    setCategories([])
-    setExpandedBoards({})
-    setSections([])
+    setAllSections([])
     try {
-      const { categories: cats, boardsByCtgid } = await getAreaTop(acode)
-      setCategories(cats)
-      const hasBoards = Object.keys(boardsByCtgid).length > 0
-      if (hasBoards) {
-        const secs = cats
-          .filter((c) => boardsByCtgid[c.ctgid]?.length > 0)
-          .map((c) => ({
-            title: c.name,
-            ctgid: c.ctgid,
-            data: boardsByCtgid[c.ctgid],
-          }))
-        setSections(secs)
+      const { categories: cats, boardsByCtgid: areatopBoards, restrictedCtgids: rCtgids } =
+        await getAreaTop(acode)
+
+      setRestrictedCtgids(rCtgids)
+
+      const missing = cats.filter((c) => !areatopBoards[c.ctgid]?.length)
+      let allBoards = { ...areatopBoards }
+
+      if (missing.length > 0) {
+        const results = await Promise.all(
+          missing.map(async (cat) => {
+            try {
+              const boards = await getBoards(acode, cat.ctgid)
+              return { ctgid: cat.ctgid, boards }
+            } catch {
+              return { ctgid: cat.ctgid, boards: [] }
+            }
+          }),
+        )
+        for (const { ctgid, boards } of results) {
+          if (boards.length > 0) allBoards[ctgid] = boards
+        }
       }
+
+      const secs = cats
+        .filter((c) => allBoards[c.ctgid]?.length > 0)
+        .map((c) => ({ title: c.name, ctgid: c.ctgid, data: allBoards[c.ctgid] }))
+
+      setAllSections(secs)
     } catch (e) {
       setError(e.message || 'エラーが発生しました')
     } finally {
@@ -61,47 +113,72 @@ export default function BoardList() {
     }
   }
 
-  const onBoardPress = (board) => {
+  // showRestricted / allSections が変わったときだけ再計算
+  const sections = useMemo(() => {
+    const filtered = showRestricted
+      ? allSections
+      : allSections.filter((s) => !restrictedCtgids.has(s.ctgid))
+
+    const favForRegion = favorites.filter((f) => f.acode === acode)
+    if (favForRegion.length > 0) {
+      return [{ title: 'お気に入り', ctgid: 'fav', data: favForRegion, isFav: true }, ...filtered]
+    }
+    return filtered
+  }, [showRestricted, allSections, restrictedCtgids, favorites, acode])
+
+  const onBoardPress = useCallback((board) => {
+    Haptics.selectionAsync()
     navigation.navigate('ThreadList', {
       acode: board.acode,
       ctgid: board.ctgid,
       bid: board.bid,
       boardName: board.name,
     })
-  }
+  }, [navigation])
 
-  const onCategoryPress = async (cat) => {
-    if (expandedBoards[cat.ctgid]) {
-      setExpandedBoards((prev) => {
-        const next = { ...prev }
-        delete next[cat.ctgid]
-        return next
-      })
-      return
-    }
-    setLoadingCtgid(cat.ctgid)
-    try {
-      const boards = await getBoards(acode, cat.ctgid)
-      setExpandedBoards((prev) => ({ ...prev, [cat.ctgid]: boards }))
-    } catch {}
-    setLoadingCtgid(null)
-  }
+  const keyExtractor = useCallback((item) => String(item.bid), [])
 
-  const hasSections = sections.length > 0
-  const favForRegion = favorites.filter((f) => f.acode === acode)
+  const renderItem = useCallback(({ item, section }) => (
+    <BoardItem item={item} isFav={!!section.isFav} onPress={onBoardPress} theme={theme} />
+  ), [onBoardPress, theme])
+
+  const renderSectionHeader = useCallback(({ section }) => (
+    <SectionHeader section={section} theme={theme} />
+  ), [theme])
+
+  const renderRegionItem = useCallback(({ item }) => (
+    <TouchableOpacity
+      style={[
+        styles.regionItem,
+        { borderBottomColor: theme.border },
+        item === acode && { backgroundColor: theme.surfaceAlt },
+      ]}
+      onPress={() => {
+        setAcode(item)
+        setShowRegionModal(false)
+      }}
+    >
+      <Text style={[styles.regionItemText, { color: theme.text }]}>
+        {AREA_NAMES[item]}
+      </Text>
+      {item === acode && (
+        <FontIcon name="check" size={15} color={theme.accent} />
+      )}
+    </TouchableOpacity>
+  ), [acode, theme, setAcode])
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
+    <SafeAreaView edges={[]} style={[styles.container, { backgroundColor: theme.bg }]}>
       <StatusBar
-        barStyle={isDark ? 'light-content' : 'light-content'}
-        backgroundColor={theme.header}
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.bg}
       />
 
-      <View style={[styles.header, { backgroundColor: theme.header }]}>
+      <View style={[styles.header, { backgroundColor: theme.header, paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.headerText }]}>爆速</Text>
         <TouchableOpacity onPress={() => setShowRegionModal(true)} style={styles.regionBtn}>
           <Text style={[styles.regionText, { color: theme.headerText }]}>
-            {AREA_NAMES[acode] || '地域'} ▼
+            {AREA_NAMES[acode] || '地域'}{'  '}<FontIcon name="caret-down" size={14} color={theme.headerText} />
           </Text>
         </TouchableOpacity>
       </View>
@@ -120,106 +197,18 @@ export default function BoardList() {
             <Text style={{ color: theme.accent }}>再試行</Text>
           </TouchableOpacity>
         </View>
-      ) : hasSections ? (
+      ) : (
         <SectionList
           sections={sections}
-          keyExtractor={(item) => String(item.bid)}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.boardItem,
-                { backgroundColor: theme.surface, borderBottomColor: theme.border },
-              ]}
-              onPress={() => onBoardPress(item)}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.boardName, { color: theme.text }]}>{item.name}</Text>
-              <Text style={[styles.arrow, { color: theme.subText }]}>›</Text>
-            </TouchableOpacity>
-          )}
-          renderSectionHeader={({ section }) => (
-            <View
-              style={[
-                styles.sectionHeader,
-                { backgroundColor: theme.bg, borderBottomColor: theme.border },
-              ]}
-            >
-              <Text style={[styles.sectionTitle, { color: theme.subText }]}>
-                {section.title}
-              </Text>
-            </View>
-          )}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={false}
+          windowSize={5}
+          maxToRenderPerBatch={20}
+          initialNumToRender={30}
+          removeClippedSubviews
         />
-      ) : (
-        <ScrollView>
-          {favForRegion.length > 0 && (
-            <>
-              <View
-                style={[
-                  styles.sectionHeader,
-                  { backgroundColor: theme.bg, borderBottomColor: theme.border },
-                ]}
-              >
-                <Text style={[styles.sectionTitle, { color: theme.subText }]}>
-                  ★ お気に入り
-                </Text>
-              </View>
-              {favForRegion.map((board) => (
-                <TouchableOpacity
-                  key={`fav-${board.bid}`}
-                  style={[
-                    styles.boardItem,
-                    { backgroundColor: theme.surface, borderBottomColor: theme.border },
-                  ]}
-                  onPress={() => onBoardPress(board)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.boardName, { color: theme.accent }]}>{board.name}</Text>
-                  <Text style={[styles.arrow, { color: theme.subText }]}>›</Text>
-                </TouchableOpacity>
-              ))}
-            </>
-          )}
-
-          {categories.map((cat) => (
-            <View key={cat.ctgid}>
-              <TouchableOpacity
-                style={[
-                  styles.categoryItem,
-                  { backgroundColor: theme.bg, borderBottomColor: theme.border },
-                ]}
-                onPress={() => onCategoryPress(cat)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.categoryName, { color: theme.subText }]}>
-                  {cat.name}
-                </Text>
-                {loadingCtgid === cat.ctgid ? (
-                  <ActivityIndicator size="small" color={theme.accent} />
-                ) : (
-                  <Text style={{ color: theme.subText }}>
-                    {expandedBoards[cat.ctgid] ? '▲' : '▼'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-              {expandedBoards[cat.ctgid]?.map((board) => (
-                <TouchableOpacity
-                  key={`board-${board.bid}`}
-                  style={[
-                    styles.boardItem,
-                    { backgroundColor: theme.surface, borderBottomColor: theme.border },
-                  ]}
-                  onPress={() => onBoardPress(board)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.boardName, { color: theme.text }]}>{board.name}</Text>
-                  <Text style={[styles.arrow, { color: theme.subText }]}>›</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          ))}
-        </ScrollView>
       )}
 
       <Modal visible={showRegionModal} transparent animationType="slide">
@@ -234,26 +223,7 @@ export default function BoardList() {
             <FlatList
               data={AREA_CODES}
               keyExtractor={(item) => String(item)}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.regionItem,
-                    { borderBottomColor: theme.border },
-                    item === acode && { backgroundColor: theme.surfaceAlt },
-                  ]}
-                  onPress={() => {
-                    setAcode(item)
-                    setShowRegionModal(false)
-                  }}
-                >
-                  <Text style={[styles.regionItemText, { color: theme.text }]}>
-                    {AREA_NAMES[item]}
-                  </Text>
-                  {item === acode && (
-                    <Text style={{ color: theme.accent }}>✓</Text>
-                  )}
-                </TouchableOpacity>
-              )}
+              renderItem={renderRegionItem}
             />
           </View>
         </View>
@@ -269,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
   },
   headerTitle: { fontSize: 20, fontWeight: '700' },
   regionBtn: { padding: 4 },
@@ -288,6 +258,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   sectionTitle: { fontSize: 12, fontWeight: '600' },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center' },
   boardItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -296,15 +267,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   boardName: { flex: 1, fontSize: 15 },
-  arrow: { fontSize: 18, marginLeft: 8 },
-  categoryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  categoryName: { flex: 1, fontSize: 13, fontWeight: '600' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

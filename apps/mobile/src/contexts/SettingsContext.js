@@ -22,16 +22,30 @@ export const SettingsContextProvider = ({ children }) => {
   const [acode, setAcodeState] = useState(DEFAULT_ACODE)
   const [ngWords, setNgWordsState] = useState([])
   const [favorites, setFavoritesState] = useState([])
+  const [favoriteThreads, setFavoriteThreadsState] = useState([])
   const [readHistory, setReadHistoryState] = useState([])
   const [readSet, setReadSet] = useState({})
+  const [seenCounts, setSeenCounts] = useState({})
+  // スレ表示モード: false=最新から(デフォルト) / true=最初から (全スレ共通・永続化)
+  const [readFromStart, setReadFromStartState] = useState(false)
+  const [memo, setMemoState] = useState('')
+  const [postEulaAccepted, setPostEulaAcceptedState] = useState(false)
+  // rw=1 モードで最後に読んでいたページ番号 { [tid]: page }
+  const [readPositions, setReadPositionsState] = useState({})
 
   useEffect(() => {
     ;(async () => {
       setAcodeState(await load('@bakusai_acode', DEFAULT_ACODE))
       setNgWordsState(await load('@bakusai_ngwords', []))
       setFavoritesState(await load('@bakusai_favorites', []))
+      setFavoriteThreadsState(await load('@bakusai_fav_threads', []))
       setReadHistoryState(await load('@bakusai_history', []))
       setReadSet(await load('@bakusai_readset', {}))
+      setSeenCounts(await load('@bakusai_seencounts', {}))
+      setReadFromStartState(await load('@bakusai_read_from_start', false))
+      setMemoState(await load('@bakusai_memo', ''))
+      setPostEulaAcceptedState(await load('@bakusai_post_eula', false))
+      setReadPositionsState(await load('@bakusai_readpos', {}))
     })()
   }, [])
 
@@ -69,11 +83,68 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_history', next)
   }
 
+  const setReadHistory = (next) => {
+    setReadHistoryState(next)
+    save('@bakusai_history', next)
+  }
+
   const markRead = (tid, rrid) => {
     const next = { ...readSet, [String(tid)]: rrid }
     setReadSet(next)
     save('@bakusai_readset', next)
   }
+
+  // スレ一覧で「既読時の resCount」を記録し、新着バッジ判定に使う
+  const markSeen = (tid, resCount) => {
+    const next = { ...seenCounts, [String(tid)]: resCount }
+    setSeenCounts(next)
+    save('@bakusai_seencounts', next)
+  }
+
+  const addFavoriteThread = (entry) => {
+    const next = [
+      entry,
+      ...favoriteThreads.filter((t) => t.tid !== entry.tid),
+    ]
+    setFavoriteThreadsState(next)
+    save('@bakusai_fav_threads', next)
+  }
+
+  const removeFavoriteThread = (tid) => {
+    const next = favoriteThreads.filter((t) => t.tid !== tid)
+    setFavoriteThreadsState(next)
+    save('@bakusai_fav_threads', next)
+  }
+
+  // 表示モード切替: 全スレ共通・永続化
+  const setReadFromStart = (v) => {
+    setReadFromStartState(v)
+    save('@bakusai_read_from_start', v)
+  }
+
+  const setMemo = (v) => {
+    setMemoState(v)
+    save('@bakusai_memo', v)
+  }
+
+  const acceptPostEula = () => {
+    setPostEulaAcceptedState(true)
+    save('@bakusai_post_eula', true)
+  }
+
+  // rw=1 モードの再開ページを保存（tid → page number）
+  const saveReadPosition = (tid, page) => {
+    if (!page || page < 1) return
+    const next = { ...readPositions, [String(tid)]: page }
+    setReadPositionsState(next)
+    save('@bakusai_readpos', next)
+  }
+
+  // 成人・ギャンブルカテゴリ表示判定
+  const SHOW_RESTRICTED_WORDS = ['全部', '全て', 'all', 'ぜんぶ', 'すべて', 'zenbu']
+  const showRestricted = SHOW_RESTRICTED_WORDS.some((w) =>
+    memo.toLowerCase().includes(w.toLowerCase()),
+  )
 
   return (
     <SettingsContext.Provider
@@ -85,10 +156,25 @@ export const SettingsContextProvider = ({ children }) => {
         favorites,
         addFavorite,
         removeFavorite,
+        favoriteThreads,
+        addFavoriteThread,
+        removeFavoriteThread,
         readHistory,
         addHistory,
+        setReadHistory,
         readSet,
         markRead,
+        seenCounts,
+        markSeen,
+        readFromStart,
+        setReadFromStart,
+        memo,
+        setMemo,
+        showRestricted,
+        postEulaAccepted,
+        acceptPostEula,
+        readPositions,
+        saveReadPosition,
       }}
     >
       {children}

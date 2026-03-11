@@ -1,37 +1,35 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   Switch,
+  TextInput,
   StyleSheet,
   StatusBar,
-  TextInput,
-  Alert,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
+import FontIcon from 'react-native-vector-icons/FontAwesome'
 import { AREA_NAMES, AREA_CODES } from 'lib/bakusai'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
+import { version } from '../../config'
+
+const appIcon = require('../../../assets/images/logo-lg.png')
 
 export default function Settings() {
   const navigation = useNavigation()
-  const { acode, setAcode, ngWords, setNgWords, favorites, removeFavorite, readHistory } =
-    useSettings()
+  const {
+    acode, setAcode,
+    ngWords,
+    readFromStart, setReadFromStart,
+    memo, setMemo,
+  } = useSettings()
   const { theme, isDark, toggleTheme } = useTheme()
-
-  const [newNgWord, setNewNgWord] = useState('')
-
-  const addNgWord = () => {
-    const word = newNgWord.trim()
-    if (!word) return
-    if (!ngWords.includes(word)) {
-      setNgWords([...ngWords, word])
-    }
-    setNewNgWord('')
-  }
+  const insets = useSafeAreaInsets()
 
   const row = [
     styles.row,
@@ -39,10 +37,13 @@ export default function Settings() {
   ]
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.header} />
+    <SafeAreaView edges={[]} style={[styles.container, { backgroundColor: theme.bg }]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.bg}
+      />
 
-      <View style={[styles.header, { backgroundColor: theme.header }]}>
+      <View style={[styles.header, { backgroundColor: theme.header, paddingTop: insets.top + 12 }]}>
         <Text style={[styles.headerTitle, { color: theme.headerText }]}>設定</Text>
       </View>
 
@@ -51,13 +52,27 @@ export default function Settings() {
         <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
           <Text style={[styles.sectionTitle, { color: theme.subText }]}>外観</Text>
         </View>
-        <View style={row}>
+        <View style={[row, styles.switchRow]}>
           <Text style={[styles.rowLabel, { color: theme.text }]}>ダークモード</Text>
           <Switch
             value={isDark}
             onValueChange={toggleTheme}
             trackColor={{ false: '#e5e7eb', true: '#f97316' }}
-            thumbColor={isDark ? '#fff' : '#fff'}
+            thumbColor="#fff"
+          />
+        </View>
+        <View style={[row, styles.switchRow]}>
+          <View style={styles.switchLabelWrap}>
+            <Text style={[styles.rowLabel, { color: theme.text }]}>スレを最初から表示</Text>
+            <Text style={[styles.rowSub, { color: theme.subText }]}>
+              ON: レス1から順に読む / OFF: 最新レスから読む
+            </Text>
+          </View>
+          <Switch
+            value={readFromStart}
+            onValueChange={setReadFromStart}
+            trackColor={{ false: '#e5e7eb', true: '#f97316' }}
+            thumbColor="#fff"
           />
         </View>
 
@@ -92,146 +107,71 @@ export default function Settings() {
         <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
           <Text style={[styles.sectionTitle, { color: theme.subText }]}>NGワード</Text>
         </View>
+        <TouchableOpacity
+          style={[row, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
+          onPress={() => navigation.navigate('NgWords')}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.rowLabel, { color: theme.text, flex: 1 }]}>NGワードを管理</Text>
+          <View style={styles.rowRight}>
+            {ngWords.length > 0 && (
+              <Text style={[styles.badge, { color: theme.subText }]}>{ngWords.length}件</Text>
+            )}
+            <FontIcon name="chevron-right" size={13} color={theme.subText} />
+          </View>
+        </TouchableOpacity>
+
+        {/* メモ */}
+        <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
+          <Text style={[styles.sectionTitle, { color: theme.subText }]}>メモ</Text>
+        </View>
         <View
           style={[
-            styles.ngInputRow,
+            styles.memoRow,
             { backgroundColor: theme.surface, borderBottomColor: theme.border },
           ]}
         >
           <TextInput
             style={[
-              styles.ngInput,
+              styles.memoInput,
               {
                 color: theme.text,
                 borderColor: theme.inputBorder,
                 backgroundColor: theme.inputBg,
               },
             ]}
-            placeholder="NGワードを追加"
+            value={memo}
+            onChangeText={setMemo}
+            placeholder="メモを入力"
             placeholderTextColor={theme.subText}
-            value={newNgWord}
-            onChangeText={setNewNgWord}
-            onSubmitEditing={addNgWord}
+            maxLength={20}
+            autoCapitalize="none"
+            autoCorrect={false}
             returnKeyType="done"
           />
-          <TouchableOpacity
-            style={[styles.addBtn, { backgroundColor: theme.accent }]}
-            onPress={addNgWord}
-          >
-            <Text style={{ color: '#fff', fontWeight: '600' }}>追加</Text>
-          </TouchableOpacity>
         </View>
-        {ngWords.length === 0 ? (
-          <View style={row}>
-            <Text style={{ color: theme.subText, fontSize: 13 }}>NGワードなし</Text>
-          </View>
-        ) : (
-          ngWords.map((word) => (
-            <View key={word} style={row}>
-              <Text style={[styles.rowLabel, { color: theme.text }]}>{word}</Text>
-              <TouchableOpacity
-                onPress={() => setNgWords(ngWords.filter((w) => w !== word))}
-              >
-                <Text style={{ color: theme.bad, fontSize: 18 }}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
 
-        {/* お気に入り */}
+        {/* このアプリについて */}
         <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
           <Text style={[styles.sectionTitle, { color: theme.subText }]}>
-            お気に入り掲示板
+            このアプリについて
           </Text>
         </View>
-        {favorites.length === 0 ? (
-          <View style={row}>
-            <Text style={{ color: theme.subText, fontSize: 13 }}>お気に入りなし</Text>
-          </View>
-        ) : (
-          favorites.map((fav) => (
-            <View key={`${fav.acode}-${fav.bid}`} style={row}>
-              <TouchableOpacity
-                style={{ flex: 1 }}
-                onPress={() =>
-                  navigation.navigate('HomeTab', {
-                    screen: 'ThreadList',
-                    params: {
-                      acode: fav.acode,
-                      ctgid: fav.ctgid,
-                      bid: fav.bid,
-                      boardName: fav.name,
-                    },
-                  })
-                }
-              >
-                <Text style={[styles.rowLabel, { color: theme.accent }]}>
-                  {fav.name}
-                </Text>
-                <Text style={{ color: theme.subText, fontSize: 11 }}>
-                  {AREA_NAMES[fav.acode]}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'お気に入りから削除',
-                    `「${fav.name}」を削除しますか？`,
-                    [
-                      { text: 'キャンセル', style: 'cancel' },
-                      {
-                        text: '削除',
-                        style: 'destructive',
-                        onPress: () => removeFavorite(fav.bid, fav.acode),
-                      },
-                    ],
-                  )
-                }
-              >
-                <Text style={{ color: theme.bad, fontSize: 18 }}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
-
-        {/* 閲覧履歴 */}
-        <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
-          <Text style={[styles.sectionTitle, { color: theme.subText }]}>
-            閲覧履歴（最近20件）
+        <View
+          style={[
+            styles.aboutSection,
+            { backgroundColor: theme.surface, borderBottomColor: theme.border },
+          ]}
+        >
+          <Image source={appIcon} style={styles.appIcon} resizeMode="contain" />
+          <Text style={[styles.appName, { color: theme.text }]}>BakuSoku</Text>
+          <Text style={[styles.appVersion, { color: theme.subText }]}>
+            Version {version}
+          </Text>
+          <Text style={[styles.appDesc, { color: theme.subText }]}>
+            爆サイ.com 非公式ブラウザアプリ
           </Text>
         </View>
-        {readHistory.slice(0, 20).length === 0 ? (
-          <View style={row}>
-            <Text style={{ color: theme.subText, fontSize: 13 }}>履歴なし</Text>
-          </View>
-        ) : (
-          readHistory.slice(0, 20).map((entry) => (
-            <TouchableOpacity
-              key={entry.tid}
-              style={row}
-              onPress={() =>
-                navigation.navigate('HomeTab', {
-                  screen: 'ThreadDetail',
-                  params: {
-                    acode: entry.acode,
-                    ctgid: entry.ctgid,
-                    bid: entry.bid,
-                    tid: entry.tid,
-                    title: entry.title,
-                  },
-                })
-              }
-            >
-              <Text
-                style={[styles.rowLabel, { color: theme.text }]}
-                numberOfLines={1}
-              >
-                {entry.title}
-              </Text>
-              <Text style={{ color: theme.subText, fontSize: 16, marginLeft: 8 }}>›</Text>
-            </TouchableOpacity>
-          ))
-        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -243,7 +183,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingBottom: 12,
   },
   headerTitle: { fontSize: 20, fontWeight: '700' },
   sectionHeader: { paddingHorizontal: 16, paddingVertical: 8 },
@@ -255,7 +195,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowLabel: { flex: 1, fontSize: 14 },
+  rowLabel: { fontSize: 14 },
+  rowSub: { fontSize: 11, marginTop: 2 },
+  switchRow: { justifyContent: 'space-between' },
+  switchLabelWrap: { flex: 1, marginRight: 12 },
   regionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -269,24 +212,41 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   regionChipText: { fontSize: 13 },
-  ngInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  badge: { fontSize: 13 },
+  memoRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: 8,
   },
-  ngInput: {
-    flex: 1,
+  memoInput: {
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 9,
     fontSize: 14,
   },
-  addBtn: {
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  aboutSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  appIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 18,
+    marginBottom: 12,
+  },
+  appName: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  appVersion: {
+    fontSize: 13,
+    marginBottom: 6,
+  },
+  appDesc: {
+    fontSize: 12,
   },
 })
