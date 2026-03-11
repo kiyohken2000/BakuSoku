@@ -1,78 +1,57 @@
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import FontIcon from 'react-native-vector-icons/FontAwesome'
-import { colors } from 'theme'
-
-// stack navigators
+import { useTheme } from 'contexts/ThemeContext'
 import { HomeStacks } from '../stacks/HomeStacks'
-import { ProfileStacks } from '../stacks/ProfileStacks'
-import { ReadWriteStacks } from '../stacks/ReadWriteStacks'
+import { SearchStacks } from '../stacks/SearchStacks'
+import { SettingsStacks } from '../stacks/SettingsStacks'
 
 const Tab = createBottomTabNavigator()
 
 export default function TabNavigator() {
+  const { theme } = useTheme()
+
   return (
     <Tab.Navigator
-      options={{
-        tabBarActiveTintColor: colors.lightPurple,
-        tabBarInactiveTintColor: colors.gray,
-        tabBarStyle: {
-          // backgroundColor: 'white',
-          // borderTopColor: 'gray',
-          // borderTopWidth: 1,
-          // paddingBottom: 5,
-          // paddingTop: 5,
-        }
-      }}
-      defaultScreenOptions={{
-        headerShown:false,
-        headerTransparent:true
-      }}
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
-      })}
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.subText,
+        tabBarStyle: {
+          backgroundColor: theme.tabBar,
+          borderTopColor: theme.tabBarBorder,
+          borderTopWidth: 1,
+        },
+      }}
       initialRouteName="HomeTab"
-      swipeEnabled={false}
     >
       <Tab.Screen
         name="HomeTab"
         component={HomeStacks}
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: '掲示板',
           tabBarIcon: ({ color, size }) => (
-            <FontIcon
-              name="home"
-              color={color}
-              size={size}
-            />
+            <FontIcon name="th-list" color={color} size={size} />
           ),
         }}
       />
       <Tab.Screen
-        name="ProfileTab"
-        component={ProfileStacks}
+        name="SearchTab"
+        component={SearchStacks}
         options={{
-          tabBarLabel: 'Profile',
+          tabBarLabel: '検索',
           tabBarIcon: ({ color, size }) => (
-            <FontIcon
-              name="user"
-              color={color}
-              size={size}
-            />
+            <FontIcon name="search" color={color} size={size} />
           ),
         }}
       />
       <Tab.Screen
-        name="ReadWriteTab"
-        component={ReadWriteStacks}
+        name="SettingsTab"
+        component={SettingsStacks}
         options={{
-          tabBarLabel: 'R/W',
+          tabBarLabel: '設定',
           tabBarIcon: ({ color, size }) => (
-            <FontIcon
-              name="address-card"
-              color={color}
-              size={size}
-            />
+            <FontIcon name="cog" color={color} size={size} />
           ),
         }}
       />

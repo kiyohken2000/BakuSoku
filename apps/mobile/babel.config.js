@@ -14,6 +14,8 @@ module.exports = (api) => {
             theme: './src/theme',
             utils: './src/utils',
             slices: './src/slices',
+            lib: './src/lib',
+            contexts: './src/contexts',
           },
         },
       ],
