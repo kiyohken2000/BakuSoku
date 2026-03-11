@@ -23,6 +23,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
 import FontIcon from 'react-native-vector-icons/FontAwesome'
 import { getThread, getThreadFromStart, getResShow, getRatingList, postResponse } from 'lib/bakusai'
+import { createMqttClient } from 'lib/mqttClient'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
 
@@ -69,6 +70,11 @@ export default function ThreadDetail() {
   const [showEulaModal, setShowEulaModal] = useState(false)
   const [pendingReplyTo, setPendingReplyTo] = useState(null)
 
+  // MQTT リアルタイム更新
+  const [mqttConnected, setMqttConnected] = useState(false)
+  const readFromStartRef = useRef(readFromStart)  // stale closure 対策
+  useEffect(() => { readFromStartRef.current = readFromStart }, [readFromStart])
+
   // 前回既読位置への自動スクロール（初回ロード時のみ使用）
   const resumeRridRef = useRef(readSet[String(tid)] ?? null)
 
@@ -89,6 +95,32 @@ export default function ThreadDetail() {
     const resumePage = readFromStart ? (readPositions?.[String(tid)] ?? null) : null
     loadThread(resumePage, readFromStart)
   }, [])
+
+  // MQTT: スレ表示中だけ接続し、アンマウント時に切断
+  useEffect(() => {
+    const client = createMqttClient(
+      `thread/${tid}`,
+      (msg) => {
+        // 新着レスをリストに追加（重複チェックあり）
+        setResponses((prev) => {
+          if (prev.some((r) => r.rrid === msg.rrid)) return prev
+          const newRes = {
+            rrid: msg.rrid,
+            body: msg.body || '',
+            name: msg.name || '匿名さん',
+            date: msg.date || '',
+          }
+          // rw=1（昇順）→ 末尾に追加、→最新（降順）→ 先頭に追加
+          return readFromStartRef.current
+            ? [...prev, newRes]
+            : [newRes, ...prev]
+        })
+      },
+      () => setMqttConnected(true),
+      () => setMqttConnected(false),
+    )
+    return () => client.disconnect()
+  }, [tid])
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true)
@@ -475,6 +507,11 @@ export default function ThreadDetail() {
           <Text style={[styles.headerTitle, { color: theme.headerText }]} numberOfLines={1}>
             {pageTitle}
           </Text>
+          {mqttConnected && (
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveBadgeText}>LIVE</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <View style={styles.headerRight}>
           <TouchableOpacity
@@ -755,7 +792,14 @@ const styles = StyleSheet.create({
   },
   modeBtnText: { fontSize: 12, fontWeight: '600' },
   headerIconBtn: { padding: 2 },
-  headerTitleBtn: { flex: 1 },
+  headerTitleBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveBadge: {
+    backgroundColor: '#22c55e',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  liveBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
   postBtn: { alignItems: 'flex-end' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   errorText: { fontSize: 14, marginBottom: 12, textAlign: 'center' },
