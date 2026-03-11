@@ -1,42 +1,307 @@
-#root {
-  max-width: 1280px;
+/* ========================================
+   BakuSoku Landing Page
+   ======================================== */
+
+/* ---------- Hero ---------- */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px 80px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(249, 115, 22, 0.12) 0%, transparent 60%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 28px;
+  margin-bottom: 32px;
+  box-shadow: 0 8px 40px rgba(249, 115, 22, 0.3);
+}
+
+.hero h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.hero h1 .accent {
+  color: #f97316;
+}
+
+.hero .tagline {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: #9ca3af;
+  margin-bottom: 40px;
+  max-width: 480px;
+}
+
+.hero-badges {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.badge-btn:hover {
+  transform: translateY(-2px);
+}
+
+.badge-btn.primary {
+  background: #f97316;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+}
+
+.badge-btn.primary:hover {
+  box-shadow: 0 6px 28px rgba(249, 115, 22, 0.55);
+}
+
+.badge-btn.secondary {
+  background: #1f1f1f;
+  color: #e5e5e5;
+  border: 1px solid #333;
+}
+
+.badge-btn.secondary:hover {
+  border-color: #555;
+}
+
+.badge-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.store-badge {
+  height: 52px;
+  width: auto;
+  opacity: 0.35;
+  filter: grayscale(0.2);
+  transition: opacity 0.3s, filter 0.3s;
+  cursor: default;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.store-badge:hover {
+  opacity: 0.5;
+}
+
+/* ---------- Pill features (compact) ---------- */
+.pill-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 48px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.pill-icon {
+  font-size: 1rem;
+}
+
+/* ---------- Screenshots Carousel ---------- */
+.screenshots {
+  padding: 80px 24px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.screenshots h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.screenshots .section-sub {
+  color: #9ca3af;
+  margin-bottom: 48px;
+  font-size: 1rem;
+}
+
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem;
+}
+
+.screenshot-card {
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.screenshot-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
+  border: 2px solid #222;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.screenshot-card img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 12px 48px rgba(249, 115, 22, 0.2);
+}
+
+.screenshot-card .caption {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* ---------- Features Grid ---------- */
+.features {
+  padding: 80px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.features h2 {
+  text-align: center;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 48px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.feature-card {
+  background: #161616;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.feature-card:hover {
+  border-color: #f97316;
+  transform: translateY(-4px);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.feature-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.feature-card p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  line-height: 1.65;
+}
+
+/* ---------- CTA ---------- */
+.cta {
+  text-align: center;
+  padding: 80px 24px 100px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(249, 115, 22, 0.08) 0%, transparent 60%);
+}
+
+.cta h2 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.cta p {
+  color: #9ca3af;
+  margin-bottom: 36px;
+  font-size: 1rem;
+}
+
+.cta .badge-btn {
+  font-size: 1.05rem;
+  padding: 16px 36px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  padding: 32px 24px;
+  border-top: 1px solid #1a1a1a;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.footer a {
+  color: #9ca3af;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: #f97316;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .hero {
+    padding: 40px 20px 60px;
   }
-  to {
-    transform: rotate(360deg);
+
+  .hero-icon {
+    width: 88px;
+    height: 88px;
+    border-radius: 22px;
+    margin-bottom: 24px;
   }
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+  .screenshot-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
   }
-}
 
-.card {
-  padding: 2em;
-}
+  .screenshot-card img {
+    border-radius: 16px;
+  }
 
-.read-the-docs {
-  color: #888;
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
 }

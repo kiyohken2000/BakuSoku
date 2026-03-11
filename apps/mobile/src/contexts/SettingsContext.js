@@ -19,6 +19,7 @@ const save = (key, value) => {
 }
 
 export const SettingsContextProvider = ({ children }) => {
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
   const [acode, setAcodeState] = useState(DEFAULT_ACODE)
   const [ngWords, setNgWordsState] = useState([])
   const [favorites, setFavoritesState] = useState([])
@@ -27,7 +28,7 @@ export const SettingsContextProvider = ({ children }) => {
   const [readSet, setReadSet] = useState({})
   const [seenCounts, setSeenCounts] = useState({})
   // スレ表示モード: false=最新から(デフォルト) / true=最初から (全スレ共通・永続化)
-  const [readFromStart, setReadFromStartState] = useState(false)
+  const [readFromStart, setReadFromStartState] = useState(true)
   const [memo, setMemoState] = useState('')
   const [postEulaAccepted, setPostEulaAcceptedState] = useState(false)
   // rw=1 モードで最後に読んでいたページ番号 { [tid]: page }
@@ -42,10 +43,11 @@ export const SettingsContextProvider = ({ children }) => {
       setReadHistoryState(await load('@bakusai_history', []))
       setReadSet(await load('@bakusai_readset', {}))
       setSeenCounts(await load('@bakusai_seencounts', {}))
-      setReadFromStartState(await load('@bakusai_read_from_start', false))
+      setReadFromStartState(await load('@bakusai_read_from_start', true))
       setMemoState(await load('@bakusai_memo', ''))
       setPostEulaAcceptedState(await load('@bakusai_post_eula', false))
       setReadPositionsState(await load('@bakusai_readpos', {}))
+      setIsSettingsLoaded(true)
     })()
   }, [])
 
@@ -140,6 +142,21 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_readpos', next)
   }
 
+  // すべての設定・データをデフォルト値にリセット（AsyncStorage は呼び出し元でクリア済み前提）
+  const resetAllSettings = () => {
+    setAcodeState(DEFAULT_ACODE)
+    setNgWordsState([])
+    setFavoritesState([])
+    setFavoriteThreadsState([])
+    setReadHistoryState([])
+    setReadSet({})
+    setSeenCounts({})
+    setReadFromStartState(true)
+    setMemoState('')
+    setPostEulaAcceptedState(false)
+    setReadPositionsState({})
+  }
+
   // 成人・ギャンブルカテゴリ表示判定
   const SHOW_RESTRICTED_WORDS = ['全部', '全て', 'all', 'ぜんぶ', 'すべて', 'zenbu']
   const showRestricted = SHOW_RESTRICTED_WORDS.some((w) =>
@@ -149,6 +166,7 @@ export const SettingsContextProvider = ({ children }) => {
   return (
     <SettingsContext.Provider
       value={{
+        isSettingsLoaded,
         acode,
         setAcode,
         ngWords,
@@ -175,6 +193,7 @@ export const SettingsContextProvider = ({ children }) => {
         acceptPostEula,
         readPositions,
         saveReadPosition,
+        resetAllSettings,
       }}
     >
       {children}

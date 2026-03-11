@@ -9,13 +9,17 @@ import {
   TextInput,
   StyleSheet,
   StatusBar,
+  Alert,
+  Linking,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import FontIcon from 'react-native-vector-icons/FontAwesome'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AREA_NAMES, AREA_CODES } from 'lib/bakusai'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
+import { clearAllCache } from 'lib/db'
 import { version } from '../../config'
 
 const appIcon = require('../../../assets/images/logo-lg.png')
@@ -27,9 +31,29 @@ export default function Settings() {
     ngWords,
     readFromStart, setReadFromStart,
     memo, setMemo,
+    resetAllSettings,
   } = useSettings()
   const { theme, isDark, toggleTheme } = useTheme()
   const insets = useSafeAreaInsets()
+
+  const onClearAllData = () => {
+    Alert.alert(
+      'すべてのデータを削除',
+      '閲覧履歴・お気に入り・NGワード・スレキャッシュ・既読情報などすべてのデータを削除します。この操作は取り消せません。',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除する',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.clear()
+            await clearAllCache()
+            resetAllSettings()
+          },
+        },
+      ],
+    )
+  }
 
   const row = [
     styles.row,
@@ -173,6 +197,36 @@ export default function Settings() {
           </Text>
         </View>
 
+        {/* リンク */}
+        {[
+          { label: 'このアプリについて', url: 'https://bakusoku.pages.dev/' },
+          { label: 'プライバシーポリシー', url: 'https://bakusoku.pages.dev/#/privacy' },
+          { label: '利用規約', url: 'https://bakusoku.pages.dev/#/terms' },
+          { label: 'サポート', url: 'https://bakusoku.pages.dev/#/support' },
+        ].map(({ label, url }) => (
+          <TouchableOpacity
+            key={url}
+            style={[styles.linkRow, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
+            onPress={() => Linking.openURL(url)}
+          >
+            <Text style={[styles.linkLabel, { color: theme.text }]}>{label}</Text>
+            <FontIcon name="external-link" size={13} color={theme.subText} />
+          </TouchableOpacity>
+        ))}
+
+        {/* データ管理 */}
+        <View style={[styles.sectionHeader, { backgroundColor: theme.bg }]}>
+          <Text style={[styles.sectionTitle, { color: theme.subText }]}>データ管理</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.clearBtn, { borderColor: theme.bad }]}
+          onPress={onClearAllData}
+          activeOpacity={0.7}
+        >
+          <FontIcon name="trash" size={15} color={theme.bad} />
+          <Text style={[styles.clearBtnText, { color: theme.bad }]}>すべてのデータを削除</Text>
+        </TouchableOpacity>
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
@@ -231,6 +285,17 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  linkLabel: {
+    fontSize: 15,
+  },
   appIcon: {
     width: 80,
     height: 80,
@@ -249,4 +314,16 @@ const styles = StyleSheet.create({
   appDesc: {
     fontSize: 12,
   },
+  clearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 4,
+    paddingVertical: 13,
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  clearBtnText: { fontSize: 14, fontWeight: '600' },
 })

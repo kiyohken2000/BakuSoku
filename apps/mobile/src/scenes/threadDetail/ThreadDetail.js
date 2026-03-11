@@ -1,4 +1,4 @@
-const INITIAL_TARGET = 49 // 7件/ページ × 7ページ ≈ 49件 (rw=1モード)
+const INITIAL_TARGET = 49 // 7???? ? 7?? = 49? (rw=1???)
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
@@ -11,19 +11,22 @@ import {
   ActivityIndicator,
   StatusBar,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
   Alert,
   RefreshControl,
   Linking,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
 import FontIcon from 'react-native-vector-icons/FontAwesome'
+import * as Clipboard from 'expo-clipboard'
 import { getThread, getThreadFromStart, getResShow, getRatingList, postResponse } from 'lib/bakusai'
 import { createMqttClient } from 'lib/mqttClient'
+import { getCachedResponses, insertResponses, clearThreadCache } from 'lib/db'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
 
@@ -31,7 +34,7 @@ export default function ThreadDetail() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, tid, title } = route.params
-  const { ngWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition } = useSettings()
+  const { ngWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, isSettingsLoaded } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const flatListRef = useRef(null)
@@ -43,41 +46,55 @@ export default function ThreadDetail() {
   const [error, setError] = useState(null)
   const [ratings, setRatings] = useState({})
 
-  // 最新から: 前(古い方=ページ番号大)のページを読む
+  // ?????????????(??): ??????
   const [hasOlderPages, setHasOlderPages] = useState(false)
   const [olderPage, setOlderPage] = useState(2)
   const [loadingOlder, setLoadingOlder] = useState(false)
 
-  // 最初から (rw=1): 次(新しい方=ページ番号大)のページを読む
-  // bakusai モバイル rw=1: p=1=最古(7件), p=2=次...インクリメント方向
+  // ?????????????(rw=1): ??????
+  // bakusai ? rw=1: p=1=??(7?), p=2=?...??????
   const [hasNewerPages, setHasNewerPages] = useState(false)
   const [newerPage, setNewerPage] = useState(2)
   const [loadingNewer, setLoadingNewer] = useState(false)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  const [showPostModal, setShowPostModal] = useState(false)
   const [postBody, setPostBody] = useState('')
   const [postName, setPostName] = useState('')
   const [isPosting, setIsPosting] = useState(false)
 
   const [anchorRrid, setAnchorRrid] = useState(null)
   const [showAnchorPopup, setShowAnchorPopup] = useState(false)
-  const [anchorResponse, setAnchorResponse] = useState(null) // getResShow で取得したレス
+  const [anchorResponse, setAnchorResponse] = useState(null) // getResShow ??????
   const [anchorLoading, setAnchorLoading] = useState(false)
 
   const [showTitleModal, setShowTitleModal] = useState(false)
   const [showEulaModal, setShowEulaModal] = useState(false)
   const [pendingReplyTo, setPendingReplyTo] = useState(null)
+  const [copyItem, setCopyItem] = useState(null)   // ????????????????
+  const [copiedRrid, setCopiedRrid] = useState(null) // ?????????????
+  const [showMenu, setShowMenu] = useState(false)   // ??????????????
 
-  // MQTT リアルタイム更新
+  // ??????????????
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchMatchIdx, setSearchMatchIdx] = useState(0) // ??????????????
+  const searchInputRef = useRef(null)
+
+  // ???????????
+  const [showScrollBottom, setShowScrollBottom] = useState(false)
+  const isNearBottomRef = useRef(false)
+
+  const [showPostModal, setShowPostModal] = useState(false)
+
+  // MQTT ????????
   const [mqttConnected, setMqttConnected] = useState(false)
-  const readFromStartRef = useRef(readFromStart)  // stale closure 対策
+  const readFromStartRef = useRef(readFromStart)  // stale closure ??
   useEffect(() => { readFromStartRef.current = readFromStart }, [readFromStart])
 
-  // 前回既読位置への自動スクロール（初回ロード時のみ使用）
-  const resumeRridRef = useRef(readSet[String(tid)] ?? null)
-
+  // ????????????????????????????
+  const resumeRridRef = useRef(null)
+  const scrollTimerRef = useRef(null) // useRef ???? cleanup ? cancel ???
   const threadUrl = `https://bakusai.com/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/tp=1/`
   const isFavThread = favoriteThreads.some((t) => String(t.tid) === String(tid))
   const toggleFavThread = () => {
@@ -90,48 +107,84 @@ export default function ThreadDetail() {
   }
   const openInBrowser = () => Linking.openURL(threadUrl)
 
+  const clearCacheAndReload = async () => {
+    try {
+      await clearThreadCache(tid)
+    } catch {}
+    await loadThread(null, readFromStart)
+  }
+
   useEffect(() => {
-    // rw=1 モードで保存済みページがあればそこから再開
+    if (!isSettingsLoaded) return
+    // ????????????????? resumeRrid ?????????
+    resumeRridRef.current = readSet[String(tid)] ?? null
     const resumePage = readFromStart ? (readPositions?.[String(tid)] ?? null) : null
     loadThread(resumePage, readFromStart)
-  }, [])
+  }, [isSettingsLoaded])
 
-  // MQTT: スレ表示中だけ接続し、アンマウント時に切断
+  // LIVE ????
+  const toastOpacity = useRef(new Animated.Value(0)).current
+  const toastTimer = useRef(null)
+  const [toastCount, setToastCount] = useState(0)
+
+  const showLiveToast = useCallback((count) => {
+    setToastCount(count)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
+      Animated.delay(2000),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start()
+    toastTimer.current = setTimeout(() => { toastTimer.current = null }, 2500)
+  }, [toastOpacity])
+
+  // MQTT: liveEnabled ? true ????????????
+  const [liveEnabled, setLiveEnabled] = useState(false)
   useEffect(() => {
+    if (!liveEnabled) return
     const client = createMqttClient(
       `thread/${tid}`,
       (msg) => {
-        // 新着レスをリストに追加（重複チェックあり）
+        const newRes = {
+          rrid: msg.rrid,
+          body: msg.body || '',
+          name: msg.name || '名無し',
+          date: msg.date || '',
+        }
         setResponses((prev) => {
           if (prev.some((r) => r.rrid === msg.rrid)) return prev
-          const newRes = {
-            rrid: msg.rrid,
-            body: msg.body || '',
-            name: msg.name || '匿名さん',
-            date: msg.date || '',
+          if (readFromStartRef.current) {
+            insertResponses(tid, [newRes]).catch(() => {})
           }
-          // rw=1（昇順）→ 末尾に追加、→最新（降順）→ 先頭に追加
-          return readFromStartRef.current
+          const next = readFromStartRef.current
             ? [...prev, newRes]
             : [newRes, ...prev]
+          // ?????????????
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+          const newCount = next.length - prev.length
+          showLiveToast(newCount)
+          return next
         })
       },
       () => setMqttConnected(true),
       () => setMqttConnected(false),
     )
-    return () => client.disconnect()
-  }, [tid])
+    return () => {
+      client.disconnect()
+      setMqttConnected(false)
+    }
+  }, [liveEnabled, tid])
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true)
     await loadThread(null, readFromStart)
   }, [readFromStart])
 
-  // 常に最新の loadNewerResponses を参照するための ref（stale closure 対策）
+  // ?????????????? loadNewerResponses ????? ref?onScrollEndDrag ? stale closure ???
   const loadNewerResponsesRef = useRef(null)
-  const consecutiveEmptyRef = useRef(0)  // 空ページが連続した回数
+  const consecutiveEmptyRef = useRef(0)  // ???????????????????
 
-  // readFromStart モード: 下端でのオーバースクロール → 最新チェック
+  // readFromStart ?????????????????
   const onScrollEndDrag = useCallback((e) => {
     if (!readFromStart) return
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
@@ -143,11 +196,25 @@ export default function ThreadDetail() {
 
   const loadThread = async (initialPage, rfs) => {
     setError(null)
-    if (!isRefreshing) setIsLoading(true)
 
+    // rw=1 ???? SQLite ?????????????
     let allResps = []
+    if (rfs) {
+      const cached = await getCachedResponses(tid)
+      if (cached.length > 0) {
+        allResps = cached
+        setResponses([...cached])
+        setIsLoading(false)
+        setIsRefreshing(false)
+      } else {
+        if (!isRefreshing) setIsLoading(true)
+      }
+    } else {
+      if (!isRefreshing) setIsLoading(true)
+    }
+
     let page = initialPage ?? null
-    let lastLoadedPage = initialPage ?? 1  // 最後に読み込んだページ番号を追跡
+    let lastLoadedPage = initialPage ?? 1  // ?????????????
     let firstFetch = true
 
     try {
@@ -156,9 +223,9 @@ export default function ThreadDetail() {
           ? await getThreadFromStart(acode, ctgid, bid, tid, page)
           : await getThread(acode, ctgid, bid, tid, page)
 
-        lastLoadedPage = page ?? 1  // null = ページ1
+        lastLoadedPage = page ?? 1  // null = ??=1
 
-        // 1ページ目: タイトル・フォームをセット、ローディング解除
+        // ???????????????: ?????????????????
         if (firstFetch) {
           setPageTitle(data.pageTitle || title)
           setFormFields(data.formFields)
@@ -168,16 +235,22 @@ export default function ThreadDetail() {
           firstFetch = false
         }
 
-        // 重複除去してレスを追加
-        // rfs=false (最新から): 各ページを降順にして末尾に追加
+        // ?????????????
+        // rfs=false (??): ??+????????????
         const existRrids = new Set(allResps.map((r) => r.rrid))
         const fresh = data.responses.filter((r) => !existRrids.has(r.rrid))
+
+        // rw=1: ???SQLite ??????
+        if (rfs && fresh.length > 0) {
+          insertResponses(tid, fresh).catch(() => {})
+        }
+
         allResps = rfs ? [...allResps, ...fresh] : [...allResps, ...[...fresh].reverse()]
         setResponses([...allResps])
 
         const nextPage = rfs ? data.nextRw1Page : data.nextNormalPage
 
-        // 十分な件数 or 次ページなし → ページネーション state を確定して終了
+        // ??????????????? or ??????????? state ???
         if (!nextPage || allResps.length >= INITIAL_TARGET) {
           if (rfs) {
             setHasNewerPages(nextPage !== null)
@@ -194,12 +267,12 @@ export default function ThreadDetail() {
       }
 
       if (allResps.length > 0) {
-        // rfs=false は降順配列なので先頭が最新レス
+        // rfs=false ?????????
         const latestRrid = rfs
           ? allResps[allResps.length - 1].rrid
           : allResps[0].rrid
         markRead(tid, latestRrid)
-        // rw=1 モードのページ位置を保存（次回再開用）
+        // rw=1 ??????????????????
         if (rfs) saveReadPosition(tid, lastLoadedPage)
         loadRatings(tid, allResps.map((r) => r.rrid))
       }
@@ -208,7 +281,7 @@ export default function ThreadDetail() {
         setIsLoading(false)
         setIsRefreshing(false)
       }
-      setError(e.message || 'エラーが発生しました')
+      setError(e.message || 'データの取得に失敗しました')
     }
   }
 
@@ -216,11 +289,11 @@ export default function ThreadDetail() {
     const next = !readFromStart
     setReadFromStart(next)
     setResponses([])
-    // モード切替時は保存ページを使わず先頭から
+    // ???????????
     loadThread(null, next)
   }
 
-  // 最新から(降順): 古いページを末尾に追加
+  // ?????????????(??): ????????
   const loadOlderResponses = async () => {
     if (loadingOlder) return
     setLoadingOlder(true)
@@ -229,7 +302,7 @@ export default function ThreadDetail() {
       if (data.responses.length > 0) {
         setResponses((prev) => {
           const existingRrids = new Set(prev.map((r) => r.rrid))
-          // 古いページも降順にして末尾に追加
+          // ?????????????? reverse ??????
           const newResps = [...data.responses]
             .reverse()
             .filter((r) => !existingRrids.has(r.rrid))
@@ -245,38 +318,42 @@ export default function ThreadDetail() {
     setLoadingOlder(false)
   }
 
-  // 最初から (rw=1): 次のページ(新しい側=ページ番号大) を読む
-  // ※ 関数定義後に ref を更新することで onScrollEndDrag の stale closure を解消
+  // ?????????????(rw=1): ??????(??????=??????) ???
+  // ? ????? ref ????? onScrollEndDrag ? stale closure ???
   const loadNewerResponses = async () => {
     if (loadingNewer) return
     setLoadingNewer(true)
     try {
       const data = await getThreadFromStart(acode, ctgid, bid, tid, newerPage)
       if (data.responses.length > 0) {
-        consecutiveEmptyRef.current = 0  // レスあり → カウンターリセット
+        consecutiveEmptyRef.current = 0  // ????????????????????
+        const latestRrid = data.responses[data.responses.length - 1].rrid
         setResponses((prev) => {
           const existingRrids = new Set(prev.map((r) => r.rrid))
           const newResps = data.responses.filter((r) => !existingRrids.has(r.rrid))
+          // rw=1 ????????
+          if (newResps.length > 0) insertResponses(tid, newResps).catch(() => {})
           return [...prev, ...newResps]
         })
         setHasNewerPages(data.nextRw1Page !== null)
         setNewerPage(data.nextRw1Page ?? newerPage + 1)
         saveReadPosition(tid, newerPage)
+        markRead(tid, latestRrid)  // ?????????????? RRID ????????????
         loadRatings(tid, data.responses.map((r) => r.rrid))
       } else if (data.nextRw1Page !== null) {
-        // 0件だが次ページリンクあり（全削除ページなど）→ スキップ
+        // 0??? nextRw1Page ?????????????????
         consecutiveEmptyRef.current = 0
         setHasNewerPages(true)
         setNewerPage(data.nextRw1Page)
       } else {
-        // 0件かつ次ページリンクなし
+        // 0??? nextRw1Page ??
         consecutiveEmptyRef.current += 1
         if (consecutiveEmptyRef.current <= 3) {
-          // パース失敗や削除ページの可能性 → 最大3ページは強制スキップして続行
+          // ??3????????????????
           setHasNewerPages(true)
           setNewerPage(newerPage + 1)
         } else {
-          // 3ページ連続で空 → 本当の終端と判断して停止
+          // 3???? ? ?????
           consecutiveEmptyRef.current = 0
           setHasNewerPages(false)
         }
@@ -284,7 +361,7 @@ export default function ThreadDetail() {
     } catch {}
     setLoadingNewer(false)
   }
-  // 毎レンダーで最新版を ref に保持
+  // loadNewerResponsesRef ??????????
   loadNewerResponsesRef.current = loadNewerResponses
 
   const loadRatings = async (tid, rrids) => {
@@ -311,7 +388,7 @@ export default function ThreadDetail() {
     setAnchorResponse(null)
     setShowAnchorPopup(true)
 
-    // 読み込み済みレスにあればそれを使う、なければ /thr_res_show/ でフェッチ
+    // ???????????????? responses ????????? /thr_res_show/ ???
     const cached = responses.find((r) => r.rrid === refRrid)
     if (cached) {
       setAnchorResponse(cached)
@@ -376,6 +453,12 @@ export default function ThreadDetail() {
 
   const openReplyTo = (rrid) => openPostModalWithEulaCheck(rrid)
 
+  const copyToClipboard = async (text, rrid) => {
+    await Clipboard.setStringAsync(text)
+    setCopiedRrid(rrid)
+    setTimeout(() => setCopiedRrid(null), 1500)
+  }
+
   const onPost = async () => {
     if (!postBody.trim() || !formFields) return
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -391,14 +474,9 @@ export default function ThreadDetail() {
         setPostBody('')
         setPostName('')
         setShowPostModal(false)
-        await loadThread(null)
-      } else if (result?.status === 'cushion') {
-        Alert.alert('確認', '投稿してよろしいですか？', [
-          { text: 'キャンセル', style: 'cancel' },
-          { text: '投稿', onPress: onPost },
-        ])
+        await loadThread(null, readFromStart)
       } else {
-        Alert.alert('エラー', '投稿に失敗しました')
+        Alert.alert('エラー', `投稿に失敗しました\nstatus: ${result?.status ?? 'undefined'}`)
       }
     } catch (e) {
       Alert.alert('エラー', e.message || '投稿に失敗しました')
@@ -411,23 +489,9 @@ export default function ThreadDetail() {
     (r) => !ngWords.some((w) => r.body.includes(w) || r.name.includes(w)),
   )
 
-  // 初回ロード後、前回既読位置にスクロール（セパレーター注入後の displayResponses を使う）
-  useEffect(() => {
-    if (!resumeRridRef.current || displayResponses.length === 0) return
-    const idx = displayResponses.findIndex((r) => r.rrid === resumeRridRef.current)
-    if (idx < 0) return
-    resumeRridRef.current = null // 一度だけ実行
-    const timer = setTimeout(() => {
-      try {
-        flatListRef.current?.scrollToIndex({ index: idx, animated: false, viewPosition: 0 })
-      } catch {}
-    }, 350)
-    return () => clearTimeout(timer)
-  }, [displayResponses])
-
   const savedRrid = readSet[String(tid)]
 
-  // セパレーターをデータ配列に直接注入（renderItem の外側 View を不要にする）
+  // ?????????????????? displayResponses ????renderItem ? View ????
   const displayResponses = useMemo(() => {
     if (!savedRrid || filteredResponses.length === 0) return filteredResponses
     const idx = filteredResponses.findIndex((r) => r.rrid === savedRrid)
@@ -439,7 +503,57 @@ export default function ThreadDetail() {
     ]
   }, [filteredResponses, savedRrid])
 
-  const renderResponse = ({ item }) => {
+  // ?????????????????displayResponses ? index ????
+  const searchMatches = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return []
+    return displayResponses.reduce((acc, item, idx) => {
+      if (!item.isSeparator && (item.body.toLowerCase().includes(q) || item.name.toLowerCase().includes(q))) {
+        acc.push(idx)
+      }
+      return acc
+    }, [])
+  }, [displayResponses, searchQuery])
+
+  // ??????????????????????????
+  useEffect(() => { setSearchMatchIdx(0) }, [searchQuery])
+
+  const searchPrev = () => {
+    if (searchMatches.length === 0) return
+    const next = (searchMatchIdx - 1 + searchMatches.length) % searchMatches.length
+    setSearchMatchIdx(next)
+    flatListRef.current?.scrollToIndex({ index: searchMatches[next], animated: true, viewPosition: 0.3 })
+  }
+  const searchNext = () => {
+    if (searchMatches.length === 0) return
+    const next = (searchMatchIdx + 1) % searchMatches.length
+    setSearchMatchIdx(next)
+    flatListRef.current?.scrollToIndex({ index: searchMatches[next], animated: true, viewPosition: 0.3 })
+  }
+  const closeSearch = () => {
+    setShowSearch(false)
+    setSearchQuery('')
+    setSearchMatchIdx(0)
+  }
+
+  // ???????????????????
+  // scrollTimerRef ?????displayResponses ????????? timer ? cancel ???
+  useEffect(() => {
+    if (scrollTimerRef.current) return // ??????????????????????
+    if (!resumeRridRef.current || displayResponses.length === 0) return
+    const idx = displayResponses.findIndex((r) => r.rrid === resumeRridRef.current)
+    if (idx < 0) return
+    resumeRridRef.current = null // ????????????????
+    scrollTimerRef.current = setTimeout(() => {
+      scrollTimerRef.current = null
+      try {
+        flatListRef.current?.scrollToIndex({ index: idx, animated: false, viewPosition: 0 })
+      } catch {}
+    }, 500)
+    // cleanup ????flatListRef.current ? null ?????????????
+  }, [displayResponses])
+
+  const renderResponse = ({ item, index }) => {
     if (item.isSeparator) {
       return (
         <View style={[styles.resumeSeparator]}>
@@ -452,11 +566,13 @@ export default function ThreadDetail() {
       )
     }
     const rating = ratings[item.rrid] || { good: 0, bad: 0 }
+    const isSearchMatch = searchMatches.includes(index)
+    const isCurrentMatch = searchMatches.length > 0 && searchMatches[searchMatchIdx] === index
     return (
       <View
         style={[
           styles.responseItem,
-          { backgroundColor: theme.surface, borderBottomColor: theme.border },
+          { backgroundColor: isCurrentMatch ? theme.accent + '22' : isSearchMatch ? theme.accent + '11' : theme.surface, borderBottomColor: theme.border },
         ]}
       >
         <View style={styles.responseHeader}>
@@ -476,13 +592,22 @@ export default function ThreadDetail() {
               </Text>
             </View>
           )}
-          <TouchableOpacity
-            style={styles.replyBtn}
-            onPress={() => openReplyTo(item.rrid)}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          >
-            <FontIcon name="reply" size={13} color={theme.subText} />
-          </TouchableOpacity>
+          <View style={styles.responseActions}>
+            <TouchableOpacity
+              style={styles.replyBtn}
+              onPress={() => openReplyTo(item.rrid)}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <FontIcon name="reply" size={13} color={theme.subText} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.replyBtn}
+              onPress={() => { setCopyItem(item); setCopiedRrid(null) }}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <FontIcon name="clipboard" size={13} color={theme.subText} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     )
@@ -515,31 +640,56 @@ export default function ThreadDetail() {
         </TouchableOpacity>
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={[styles.modeBtn, { borderColor: theme.headerText + '66' }]}
-            onPress={toggleReadMode}
+            style={styles.headerIconBtn}
+            onPress={() => { setShowSearch((v) => !v); setSearchQuery(''); setSearchMatchIdx(0) }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={[styles.modeBtnText, { color: theme.headerText }]}>
-              {readFromStart ? '1→' : '→最新'}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={toggleFavThread}>
-            <FontIcon
-              name={isFavThread ? 'star' : 'star-o'}
-              size={18}
-              color={isFavThread ? '#f97316' : theme.headerText}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerIconBtn} onPress={openInBrowser}>
-            <FontIcon name="external-link" size={16} color={theme.headerText} />
+            <FontIcon name={showSearch ? 'times' : 'search'} size={17} color={showSearch ? theme.accent : theme.headerText} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.postBtn}
+            style={styles.headerIconBtn}
             onPress={() => openPostModalWithEulaCheck()}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <FontIcon name="pencil" size={18} color={theme.headerText} />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            onPress={() => setShowMenu(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <FontIcon name="ellipsis-v" size={18} color={theme.headerText} />
+          </TouchableOpacity>
         </View>
       </View>
+
+      {/* ??????? */}
+      {showSearch && (
+        <View style={[styles.searchBar, { backgroundColor: theme.header, borderBottomColor: theme.border }]}>
+          <FontIcon name="search" size={14} color={theme.subText} style={{ marginRight: 6 }} />
+          <TextInput
+            ref={searchInputRef}
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="スレ内を検索..."
+            placeholderTextColor={theme.subText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <Text style={[styles.searchCount, { color: theme.subText }]}>
+              {searchMatches.length > 0 ? `${searchMatchIdx + 1}/${searchMatches.length}` : '0?'}
+            </Text>
+          )}
+          <TouchableOpacity onPress={searchPrev} disabled={searchMatches.length === 0} style={styles.searchNav} hitSlop={8}>
+            <FontIcon name="chevron-up" size={14} color={searchMatches.length > 0 ? theme.text : theme.subText} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={searchNext} disabled={searchMatches.length === 0} style={styles.searchNav} hitSlop={8}>
+            <FontIcon name="chevron-down" size={14} color={searchMatches.length > 0 ? theme.text : theme.subText} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {isLoading ? (
         <View style={styles.center}>
@@ -552,10 +702,11 @@ export default function ThreadDetail() {
             onPress={() => loadThread(null)}
             style={[styles.retryBtn, { borderColor: theme.accent }]}
           >
-            <Text style={{ color: theme.accent }}>再試行</Text>
+            <Text style={{ color: theme.accent }}>再読込</Text>
           </TouchableOpacity>
         </View>
       ) : (
+        <View style={styles.listWrapper}>
         <FlatList
           ref={flatListRef}
           data={displayResponses}
@@ -571,7 +722,7 @@ export default function ThreadDetail() {
           ListHeaderComponent={null}
           ListFooterComponent={
             readFromStart ? (
-              // 最初から(昇順): 末尾に「引っ張って更新」or ローダー
+              // ?????????????(??): ??????? or ???????
               loadingNewer ? (
                 <View style={styles.autoLoadIndicator}>
                   <ActivityIndicator size="small" color={theme.accent} />
@@ -585,7 +736,7 @@ export default function ThreadDetail() {
                 </View>
               ) : null
             ) : (
-              // 最新から(降順): 末尾に自動ロード中スピナー
+              // ?????????????(??): ????????????
               loadingOlder ? (
                 <View style={styles.autoLoadIndicator}>
                   <ActivityIndicator size="small" color={theme.accent} />
@@ -602,9 +753,18 @@ export default function ThreadDetail() {
             }
           }}
           onEndReachedThreshold={0.3}
+          onScroll={({ nativeEvent: { contentOffset, contentSize, layoutMeasurement } }) => {
+            const distFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y
+            const near = distFromBottom < 120
+            if (near !== isNearBottomRef.current) {
+              isNearBottomRef.current = near
+              setShowScrollBottom(!near)
+            }
+          }}
+          scrollEventThrottle={200}
           onScrollEndDrag={onScrollEndDrag}
           onScrollToIndexFailed={({ index }) => {
-            // アイテムがまだレイアウトされていない場合は末尾にスクロールしてリトライ
+            // ???????????????????????????????????
             flatListRef.current?.scrollToEnd({ animated: false })
             setTimeout(() => {
               try {
@@ -613,43 +773,116 @@ export default function ThreadDetail() {
             }, 200)
           }}
         />
+        {/* LIVE ??????? */}
+        <Animated.View
+          style={[styles.liveToast, { opacity: toastOpacity }]}
+          pointerEvents="none"
+        >
+          <FontIcon name="wifi" size={12} color="#fff" />
+          <Text style={styles.liveToastText}>新着レス +{toastCount}</Text>
+        </Animated.View>
+        {/* ????????????rw=1 ?????? */}
+        {readFromStart && showScrollBottom && (
+          <TouchableOpacity
+            style={[styles.scrollBottomBtn, { backgroundColor: theme.accent }]}
+            onPress={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            activeOpacity={0.8}
+          >
+            <FontIcon name="angle-double-down" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
+        </View>
       )}
 
+      {/* ?????????????? */}
+      <Modal visible={showMenu} transparent animationType="none" onRequestClose={() => setShowMenu(false)}>
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          onPress={() => setShowMenu(false)}
+          activeOpacity={1}
+        >
+          <View style={[styles.menuBox, { backgroundColor: theme.surface, top: insets.top + 52 }]}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { setLiveEnabled((v) => !v); setShowMenu(false) }}
+            >
+              <FontIcon
+                name={liveEnabled ? 'wifi' : 'wifi'}
+                size={15}
+                color={liveEnabled ? '#22c55e' : theme.subText}
+                style={{ width: 22 }}
+              />
+              <Text style={[styles.menuItemText, { color: liveEnabled ? '#22c55e' : theme.text }]}>
+                {liveEnabled ? 'LIVE ライブ更新をオフにする' : 'LIVE ライブ更新をオンにする'}
+              </Text>
+            </TouchableOpacity>
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { toggleReadMode(); setShowMenu(false) }}
+            >
+              <FontIcon name={readFromStart ? 'arrow-right' : 'arrow-up'} size={15} color={theme.text} style={{ width: 22 }} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>
+                {readFromStart ? '最新順で読む' : '>>1から読む'}
+              </Text>
+            </TouchableOpacity>
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { toggleFavThread(); setShowMenu(false) }}
+            >
+              <FontIcon
+                name={isFavThread ? 'star' : 'star-o'}
+                size={15}
+                color={isFavThread ? '#f97316' : theme.text}
+                style={{ width: 22 }}
+              />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>
+                {isFavThread ? 'お気に入りから削除' : 'お気に入りに追加'}
+              </Text>
+            </TouchableOpacity>
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { clearCacheAndReload(); setShowMenu(false) }}
+            >
+              <FontIcon name="refresh" size={15} color={theme.text} style={{ width: 22 }} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>キャッシュクリアして再取得</Text>
+            </TouchableOpacity>
+            <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => { openInBrowser(); setShowMenu(false) }}
+            >
+              <FontIcon name="external-link" size={15} color={theme.text} style={{ width: 22 }} />
+              <Text style={[styles.menuItemText, { color: theme.text }]}>ブラウザで開く</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ?????? */}
       <Modal visible={showPostModal} transparent animationType="slide">
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalOverlay}
         >
           <View style={[styles.postModal, { backgroundColor: theme.surface }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>返信する</Text>
+            <View style={[styles.sheetHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.sheetTitle, { color: theme.text }]}>返信する</Text>
               <TouchableOpacity onPress={() => setShowPostModal(false)}>
                 <Text style={{ color: theme.subText }}>閉じる</Text>
               </TouchableOpacity>
             </View>
             <TextInput
-              style={[
-                styles.nameInput,
-                {
-                  color: theme.text,
-                  backgroundColor: theme.inputBg,
-                  borderColor: theme.inputBorder,
-                },
-              ]}
+              style={[styles.nameInput, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
               placeholder="名前（省略可）"
               placeholderTextColor={theme.subText}
               value={postName}
               onChangeText={setPostName}
             />
             <TextInput
-              style={[
-                styles.bodyInput,
-                {
-                  color: theme.text,
-                  backgroundColor: theme.inputBg,
-                  borderColor: theme.inputBorder,
-                },
-              ]}
+              style={[styles.bodyInput, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.inputBorder }]}
               placeholder="本文を入力..."
               placeholderTextColor={theme.subText}
               multiline
@@ -657,10 +890,7 @@ export default function ThreadDetail() {
               onChangeText={setPostBody}
             />
             <TouchableOpacity
-              style={[
-                styles.submitBtn,
-                { backgroundColor: postBody.trim() ? theme.accent : theme.surfaceAlt },
-              ]}
+              style={[styles.submitBtn, { backgroundColor: postBody.trim() ? theme.accent : theme.surfaceAlt }]}
               onPress={onPost}
               disabled={!postBody.trim() || isPosting}
             >
@@ -673,27 +903,27 @@ export default function ThreadDetail() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-      {/* >>NNN アンカーポップアップ */}
-      {/* 投稿 EULA モーダル */}
+
+      {/* >>NNN ?????????? */}
+      {/* ?? EULA ???? */}
       <Modal visible={showEulaModal} transparent animationType="fade">
         <View style={styles.eulaOverlay}>
           <View style={[styles.eulaBox, { backgroundColor: theme.surface, shadowColor: theme.text }]}>
-            <Text style={[styles.eulaTitle, { color: theme.text }]}>投稿前に確認</Text>
+            <Text style={[styles.eulaTitle, { color: theme.text }]}>書き込み規約</Text>
             <ScrollView style={styles.eulaScroll} showsVerticalScrollIndicator>
               <Text style={[styles.eulaBody, { color: theme.text }]}>
-                {`爆サイ.com への投稿にあたり、以下の利用規約に同意する必要があります。\n\n` +
+                `爆サイ.com への書き込みに際し、以下の内容に同意の上でご利用ください。\n\n` +
                 `【禁止事項】\n` +
-                `・個人情報（氏名・住所・電話番号・顔写真など）の無断掲載\n` +
-                `・誹謗中傷・名誉毀損・プライバシーの侵害\n` +
-                `・わいせつ・差別的・暴力的な表現\n` +
-                `・未成年者に有害なコンテンツ\n` +
-                `・スパム・広告・フィッシング目的の投稿\n` +
-                `・著作権・商標権を侵害するコンテンツ\n` +
-                `・法令に違反するあらゆる行為\n\n` +
+                `他者への誤謗中傷・差別的発言・脅迫等の投稿は禁止します。\n` +
+                `個人情報（氏名・住所・電話番号等）の投稿は禁止です。\n` +
+                `法律に違反する内容の書き込みは禁止します。\n` +
+                `営利目的の広告・追尾行為は禁止します。\n` +
+                `著作権を侵害するコンテンツの投稿は禁止です。\n` +
+                `上記に違反した場合、投稿を削除する場合があります。\n\n` +
                 `【免責事項】\n` +
-                `投稿した内容に関するすべての責任は投稿者本人が負います。\n` +
-                `違法な投稿は削除されるとともに、捜査機関への情報提供が行われる場合があります。\n\n` +
-                `上記の内容を確認し、利用規約に同意した場合のみ「同意して投稿する」を押してください。`}
+                `投稿内容はユーザー本人の責任において行われます。\n` +
+                `爆サイ.com は投稿内容に関して一切の責任を負いません。\n\n` +
+                `上記の内容に同意の上、書き込みを行ってください。`}
               </Text>
             </ScrollView>
             <View style={[styles.eulaBtns, { borderTopColor: theme.border }]}>
@@ -711,7 +941,59 @@ export default function ThreadDetail() {
         </View>
       </Modal>
 
-      {/* スレタイ全文モーダル */}
+      {/* ????????? */}
+      <Modal visible={!!copyItem} transparent animationType="slide">
+        <View style={styles.copyOverlay}>
+          <View style={[styles.copyBox, { backgroundColor: theme.surface }]}>
+            <View style={[styles.copyHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.copyHeaderTitle, { color: theme.text }]}>テキストコピー</Text>
+              <Text style={[styles.copyHeaderSub, { color: theme.subText }]}>
+                コピーしたいテキストを編集できます。
+              </Text>
+            </View>
+            {copyItem && (
+              <View style={[styles.copyMeta, { borderBottomColor: theme.border }]}>
+                <Text style={[styles.copyMetaText, { color: theme.accent }]}>#{copyItem.rrid}</Text>
+                <Text style={[styles.copyMetaText, { color: theme.subText }]}>
+                  {'  '}{copyItem.name}{'  '}{copyItem.date}
+                </Text>
+              </View>
+            )}
+            <ScrollView style={styles.copyScroll} showsVerticalScrollIndicator={false}>
+              <TextInput
+                style={[styles.copyBody, { color: theme.text }]}
+                value={copyItem?.body ?? ''}
+                multiline
+                editable={false}
+                selectTextOnFocus={false}
+              />
+            </ScrollView>
+            <View style={[styles.copyBtns, { borderTopColor: theme.border }]}>
+              <TouchableOpacity
+                style={[styles.copyCancelBtn, { borderRightColor: theme.border }]}
+                onPress={() => { setCopyItem(null); setCopiedRrid(null) }}
+              >
+                <Text style={[styles.copyCancelText, { color: theme.subText }]}>閉じる</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.copyAcceptBtn}
+                onPress={() => copyToClipboard(copyItem?.body ?? '', copyItem?.rrid)}
+              >
+                <FontIcon
+                  name={copiedRrid === copyItem?.rrid ? 'check' : 'clipboard'}
+                  size={14}
+                  color={copiedRrid === copyItem?.rrid ? '#22c55e' : theme.accent}
+                />
+                <Text style={[styles.copyAcceptText, { color: copiedRrid === copyItem?.rrid ? '#22c55e' : theme.accent }]}>
+                  {copiedRrid === copyItem?.rrid ? 'コピーしました' : 'コピーする'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ???????????? */}
       <Modal visible={showTitleModal} transparent animationType="fade">
         <TouchableOpacity
           style={styles.anchorOverlay}
@@ -762,7 +1044,7 @@ export default function ThreadDetail() {
               </>
             ) : (
               <Text style={{ color: theme.subText, fontSize: 13 }}>
-                {`>>${anchorRrid} が見つかりません`}
+                {`>>${anchorRrid} は見つかりません`}
               </Text>
             )}
           </View>
@@ -783,15 +1065,29 @@ const styles = StyleSheet.create({
   backBtn: { minWidth: 60 },
   backText: { fontSize: 16 },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '600' },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  modeBtn: {
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  headerIconBtn: { padding: 4 },
+  menuOverlay: { flex: 1 },
+  menuBox: {
+    position: 'absolute',
+    right: 12,
+    borderRadius: 12,
+    paddingVertical: 6,
+    minWidth: 190,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 12,
   },
-  modeBtnText: { fontSize: 12, fontWeight: '600' },
-  headerIconBtn: { padding: 2 },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  menuItemText: { fontSize: 14 },
+  menuDivider: { height: StyleSheet.hairlineWidth, marginHorizontal: 12 },
   headerTitleBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   liveBadge: {
     backgroundColor: '#22c55e',
@@ -800,7 +1096,54 @@ const styles = StyleSheet.create({
     paddingVertical: 1,
   },
   liveBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
-  postBtn: { alignItems: 'flex-end' },
+  listWrapper: { flex: 1 },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 4,
+  },
+  searchCount: { fontSize: 12, marginHorizontal: 8 },
+  searchNav: { padding: 6 },
+  scrollBottomBtn: {
+    position: 'absolute',
+    bottom: 20,
+    right: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  liveToast: {
+    position: 'absolute',
+    top: 12,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#166534',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  liveToastText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   errorText: { fontSize: 14, marginBottom: 12, textAlign: 'center' },
   retryBtn: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 8 },
@@ -827,6 +1170,84 @@ const styles = StyleSheet.create({
   goodBadRow: { flexDirection: 'row', flex: 1 },
   goodBadText: { fontSize: 12 },
   replyBtn: { paddingLeft: 8 },
+  responseActions: { flexDirection: 'row', gap: 4 },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  postModal: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 24,
+  },
+  sheetContent: { paddingBottom: 8 },
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sheetTitle: { fontSize: 15, fontWeight: '700' },
+  sheetSubTitle: { fontSize: 11, lineHeight: 15, marginTop: 2 },
+  copyOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  copyBox: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '88%',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  copyHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  copyHeaderTitle: { fontSize: 15, fontWeight: '700', marginBottom: 3 },
+  copyHeaderSub: { fontSize: 11, lineHeight: 15 },
+  copyMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  copyMetaText: { fontSize: 12 },
+  copyScroll: { minHeight: 180, paddingHorizontal: 16, paddingVertical: 8 },
+  copyBody: {
+    fontSize: 14,
+    lineHeight: 22,
+    paddingVertical: 4,
+  },
+  copyBtns: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingBottom: 24,
+  },
+  copyCancelBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRightWidth: StyleSheet.hairlineWidth,
+  },
+  copyCancelText: { fontSize: 15 },
+  copyAcceptBtn: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    gap: 7,
+  },
+  copyAcceptText: { fontSize: 15, fontWeight: '600' },
   resumeSeparator: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -854,21 +1275,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   pullUpHintText: { fontSize: 12 },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  postModal: { borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16 },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  modalTitle: { fontSize: 16, fontWeight: '600' },
   nameInput: {
     borderWidth: 1,
     borderRadius: 8,
@@ -876,6 +1282,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
     marginBottom: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
   },
   bodyInput: {
     borderWidth: 1,
@@ -886,11 +1294,14 @@ const styles = StyleSheet.create({
     height: 120,
     textAlignVertical: 'top',
     marginBottom: 12,
+    marginHorizontal: 16,
   },
   submitBtn: {
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   submitText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   anchorOverlay: {

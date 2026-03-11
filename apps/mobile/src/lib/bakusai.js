@@ -281,6 +281,37 @@ export function parseThreadList(html) {
     }
   }
 
+  // weather_thr_list_box layout fallback (e.g. bid=5877 weather forecast archive)
+  if (threads.length === 0 && html.includes('weather_thr_list_box')) {
+    const wRegex =
+      /<li>\s*<a\s+href="(\/thr_res\/[^"]*\/tid=(\d+)[^"]*)"[^>]*>([\s\S]*?)<\/a>/g
+    let wm
+    while ((wm = wRegex.exec(html)) !== null) {
+      const href = wm[1]
+      const tid = wm[2]
+      const inner = wm[3]
+
+      const titleMatch = inner.match(/<div class="title">\s*([\s\S]*?)\s*<\/div>/)
+      const title = titleMatch ? decodeEntities(titleMatch[1].trim()) : ''
+
+      let updatedAt = ''
+      const timeDivMatch = inner.match(/<div class="time">([\s\S]*?)<\/div>/)
+      if (timeDivMatch) {
+        const beforeChart = timeDivMatch[1].split('<span class="thrimg_chart')[0]
+        updatedAt = beforeChart.replace(/<[^>]*>/g, '').trim()
+      }
+
+      const spanNums = [...inner.matchAll(/<span>([\d,]+)<\/span>/g)].map((n) =>
+        parseInt(n[1].replace(/,/g, ''), 10),
+      )
+      const resCount = spanNums[spanNums.length - 1] || 0
+
+      if (tid && title) {
+        threads.push({ tid, title, href, updatedAt, resCount, isPinned: false })
+      }
+    }
+  }
+
   // 次ページ URL: paging_nex_res_and_button の href から抽出
   let nextPage = null
   const pagingM = html.match(
@@ -426,13 +457,28 @@ function parseFormFields(html) {
   const actionMatch = formHtml.match(/action="([^"]+)"/)
   const fields = { _action: actionMatch ? actionMatch[1] : '' }
 
-  const inputRegex = /<input[^>]*>/g
+  // hidden/text inputのみ収集。button・submit・reset・checkboxは除外
+  const inputRegex = /<input[^>]*>/gi
   let m
   while ((m = inputRegex.exec(formHtml)) !== null) {
-    const nameMatch = m[0].match(/name="([^"]+)"/)
-    const valueMatch = m[0].match(/value="([^"]*)"/)
+    const tag = m[0]
+    const typeMatch = tag.match(/type="([^"]+)"/i)
+    const inputType = typeMatch ? typeMatch[1].toLowerCase() : 'text'
+    if (['button', 'submit', 'reset', 'image'].includes(inputType)) continue
+    const nameMatch = tag.match(/name="([^"]+)"/i)
+    const valueMatch = tag.match(/value="([^"]*)"/i)
     if (nameMatch && valueMatch) {
       fields[nameMatch[1]] = valueMatch[1]
+    }
+  }
+
+  // textarea も収集（body フィールド等）
+  const textareaRegex = /<textarea[^>]*>/gi
+  let tm
+  while ((tm = textareaRegex.exec(formHtml)) !== null) {
+    const nameMatch = tm[0].match(/name="([^"]+)"/i)
+    if (nameMatch) {
+      fields[nameMatch[1]] = ''
     }
   }
 
@@ -616,6 +662,7 @@ export async function pushRating(tid, rrid, rateId) {
 
 export async function postResponse(action, formFields, body, name) {
   const fd = new FormData()
+  // name/body/mailaddr/image_post/stamp_data は以下で個別に追加
   const skip = new Set(['_action', 'name', 'body', 'mailaddr', 'image_post', 'stamp_data'])
   for (const [k, v] of Object.entries(formFields)) {
     if (!skip.has(k)) fd.append(k, v)
@@ -623,17 +670,99 @@ export async function postResponse(action, formFields, body, name) {
   fd.append('name', name || '匿名さん')
   fd.append('body', body)
   fd.append('mailaddr', '')
+  fd.append('image_post', '')
+  fd.append('stamp_data', '')
 
   const url = action.startsWith('http') ? action : BASE_URL + action
+  // Referer: スレッドページURL（bakusai はリファラーで投稿元を検証する）
+  const referer = formFields.bid && formFields.tid
+    ? `${BASE_URL}/thr_res/bid=${formFields.bid}/tid=${formFields.tid}/`
+    : BASE_URL
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       ...getHeaders(),
+      'Referer': referer,
+      'Origin': BASE_URL,
       'X-Requested-With': 'XMLHttpRequest',
     },
     body: fd,
   })
-  return res.json()
+  applySetCookie(res.headers)
+
+  const contentType = res.headers.get('content-type') || ''
+  if (contentType.includes('application/json')) {
+    const json = await res.json()
+    // クッション: JSON の html フィールドに確認フォームが入っている
+    if (json.status === 'cushion' && json.html) {
+      return _submitCushion(json.html, url, referer)
+    }
+    return json
+  }
+
+  // HTML レスポンスの場合: 内容でクッション/成功を判定
+  const html = await res.text()
+  if (html.includes('cushion') || html.includes('クッション')) {
+    return _submitCushion(html, url, referer)
+  }
+  if (
+    res.url !== url ||
+    html.includes('書き込みありがとう') ||
+    html.includes('投稿が完了') ||
+    html.includes('thr_res') ||
+    res.ok
+  ) {
+    return { status: 'success' }
+  }
+  return { status: 'error' }
+}
+
+// クッションページの確認フォームを解析して自動送信
+async function _submitCushion(html, originalUrl, referer) {
+  // フォームの action を取得（/thr_rp1/usp=... 等）
+  const actionMatch = html.match(/action="([^"]+)"/i)
+  if (!actionMatch) {
+    console.log('[cushion] no form action found')
+    return { status: 'error' }
+  }
+  const confirmUrl = actionMatch[1].startsWith('http')
+    ? actionMatch[1]
+    : BASE_URL + actionMatch[1]
+
+  // hidden input を全て収集（value がないフィールドは空文字で送信）
+  const fd2 = new FormData()
+  const inputRegex = /<input[^>]*>/gi
+  let m
+  while ((m = inputRegex.exec(html)) !== null) {
+    const typeMatch = m[0].match(/type="([^"]+)"/i)
+    const t = typeMatch ? typeMatch[1].toLowerCase() : 'hidden'
+    if (['button', 'submit', 'reset', 'image'].includes(t)) continue
+    const nameMatch = m[0].match(/name="([^"]+)"/i)
+    const valueMatch = m[0].match(/value="([^"]*)"/i)
+    if (nameMatch) {
+      fd2.append(nameMatch[1], valueMatch ? valueMatch[1] : '')
+    }
+  }
+
+  const res2 = await fetch(confirmUrl, {
+    method: 'POST',
+    headers: {
+      ...getHeaders(),
+      'Referer': originalUrl,
+      'Origin': BASE_URL,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: fd2,
+  })
+  applySetCookie(res2.headers)
+
+  const ct2 = res2.headers.get('content-type') || ''
+  if (ct2.includes('application/json')) {
+    return res2.json()
+  }
+  if (res2.ok) return { status: 'success' }
+  return { status: 'error' }
 }
 
 export async function search(acode, word) {
