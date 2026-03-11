@@ -316,7 +316,8 @@ export function parseThreadList(html) {
       )
       const resCount = spanNums[spanNums.length - 1] || 0
 
-      if (tid && title) {
+      const alreadySeen = threads.some((t) => t.tid === tid)
+      if (tid && title && !alreadySeen) {
         threads.push({ tid, title, href, updatedAt, resCount, isPinned: false })
       }
     }
