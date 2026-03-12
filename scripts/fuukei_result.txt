@@ -1,0 +1,180 @@
+﻿============================================================
+Step 1: areatop から「風景」を含むカテゴリ・ボードを探す
+============================================================
+  発見 (areatop): acode=1 ctgid=104 bid=5830  name='風景写真をもっと見る'
+  発見 (areatop): acode=1 ctgid=104 bid=5830  name='風景画像'
+  発見 (areatop): acode=1 ctgid=104 bid=5830  name='北海道の美しい風景'
+  発見 (areatop): acode=2 ctgid=104 bid=5837  name='風景写真をもっと見る'
+  発見 (areatop): acode=2 ctgid=104 bid=5837  name='風景画像'
+  発見 (areatop): acode=2 ctgid=104 bid=5837  name='南東北の美しい風景'
+  発見 (areatop): acode=3 ctgid=104 bid=5818  name='風景写真をもっと見る'
+  発見 (areatop): acode=3 ctgid=104 bid=5818  name='風景画像'
+  発見 (areatop): acode=3 ctgid=104 bid=5818  name='東京の美しい風景'
+  発見 (areatop): acode=4 ctgid=104 bid=5833  name='風景写真をもっと見る'
+  発見 (areatop): acode=4 ctgid=104 bid=5833  name='風景画像'
+  発見 (areatop): acode=4 ctgid=104 bid=5833  name='甲信越の美しい風景'
+  発見 (areatop): acode=5 ctgid=104 bid=5831  name='風景写真をもっと見る'
+  発見 (areatop): acode=5 ctgid=104 bid=5831  name='風景画像'
+  発見 (areatop): acode=5 ctgid=104 bid=5831  name='東海の美しい風景'
+  発見 (areatop): acode=6 ctgid=104 bid=5840  name='風景写真をもっと見る'
+  発見 (areatop): acode=6 ctgid=104 bid=5840  name='風景画像'
+  発見 (areatop): acode=6 ctgid=104 bid=5840  name='北陸の美しい風景'
+  発見 (areatop): acode=7 ctgid=104 bid=5819  name='風景写真をもっと見る'
+  発見 (areatop): acode=7 ctgid=104 bid=5819  name='風景画像'
+  発見 (areatop): acode=7 ctgid=104 bid=5819  name='大阪の美しい風景'
+  発見 (areatop): acode=8 ctgid=104 bid=5834  name='風景写真をもっと見る'
+  発見 (areatop): acode=8 ctgid=104 bid=5834  name='風景画像'
+  発見 (areatop): acode=8 ctgid=104 bid=5834  name='山陽の美しい風景'
+  発見 (areatop): acode=9 ctgid=104 bid=5839  name='風景写真をもっと見る'
+  発見 (areatop): acode=9 ctgid=104 bid=5839  name='風景画像'
+  発見 (areatop): acode=9 ctgid=104 bid=5839  name='四国の美しい風景'
+  発見 (areatop): acode=10 ctgid=104 bid=5827  name='風景写真をもっと見る'
+  発見 (areatop): acode=10 ctgid=104 bid=5827  name='風景画像'
+  発見 (areatop): acode=10 ctgid=104 bid=5827  name='北部九州の美しい風景'
+  発見 (areatop): acode=11 ctgid=104 bid=5829  name='風景写真をもっと見る'
+  発見 (areatop): acode=11 ctgid=104 bid=5829  name='風景画像'
+  発見 (areatop): acode=11 ctgid=104 bid=5829  name='沖縄の美しい風景'
+  発見 (areatop): acode=12 ctgid=104 bid=5838  name='風景写真をもっと見る'
+  発見 (areatop): acode=12 ctgid=104 bid=5838  name='風景画像'
+  発見 (areatop): acode=12 ctgid=104 bid=5838  name='山陰の美しい風景'
+  発見 (areatop): acode=14 ctgid=104 bid=5835  name='風景写真をもっと見る'
+  発見 (areatop): acode=14 ctgid=104 bid=5835  name='風景画像'
+  発見 (areatop): acode=14 ctgid=104 bid=5835  name='北東北の美しい風景'
+  発見 (areatop): acode=15 ctgid=104 bid=5826  name='風景写真をもっと見る'
+  発見 (areatop): acode=15 ctgid=104 bid=5826  name='風景画像'
+  発見 (areatop): acode=15 ctgid=104 bid=5826  name='北関東の美しい風景'
+  発見 (areatop): acode=16 ctgid=104 bid=5836  name='風景写真をもっと見る'
+  発見 (areatop): acode=16 ctgid=104 bid=5836  name='風景画像'
+  発見 (areatop): acode=16 ctgid=104 bid=5836  name='南部九州の美しい風景'
+  発見 (areatop): acode=17 ctgid=104 bid=6019  name='風景写真をもっと見る'
+  発見 (areatop): acode=17 ctgid=104 bid=6019  name='風景画像'
+  発見 (areatop): acode=17 ctgid=104 bid=6019  name='南関東の美しい風景'
+  発見 (areatop): acode=18 ctgid=104 bid=6025  name='風景写真をもっと見る'
+  発見 (areatop): acode=18 ctgid=104 bid=6025  name='風景画像'
+  発見 (areatop): acode=18 ctgid=104 bid=6025  name='関西の美しい風景'
+
+→ 使用: https://bakusai.com/thr_tl/acode=1/ctgid=104/bid=5830/
+
+============================================================
+Step 2: スレッド一覧 HTML 構造解析
+============================================================
+HTML 長さ: 93042 文字
+
+通常パーサー (<li\s+data-tid=): 0 スレ
+天気パーサー (weather_thr_list_box): 0 件
+data-tid タグ: 0 件
+/thr_res/ (tid付き): 14 件
+  tid=13176039  '/thr_res/acode=1/ctgid=137/bid=1177/tid=13176039/'
+  tid=12975517  '/thr_res/acode=1/ctgid=104/bid=5830/tid=12975517/'
+  tid=13038052  '/thr_res/acode=1/ctgid=104/bid=5830/tid=13038052/'
+  tid=13029474  '/thr_res/acode=1/ctgid=104/bid=5830/tid=13029474/'
+  tid=13038052  '/thr_res/acode=1/ctgid=104/bid=5830/tid=13038052/tp=1/'
+
+<li> タグ総数: 186
+パターン:
+  [91回] '<li class="...">'
+  [36回] '<li id="...">'
+  [25回] '<li>'
+  [10回] '<li id="..." class="...">'
+  [7回] '<link rel="..." as="..." href="..." onload="...">'
+  [7回] '<li class="..." style="...">'
+  [3回] '<li id="..." style="...">'
+  [3回] '<link rel="..." href="...">'
+  [2回] '<link rel="..." type="..." href="..." />'
+  [2回] '<link rel="..." type="..." href="...">'
+
+============================================================
+Step 3: /thr_res/ 周辺の HTML（最初の 3 件）
+============================================================
+
+--- tid=13176039 ---
+い風景</span></div></h1><p class="headbtn"><a href="javascript:history.back();">戻る</a></p></header><div id="container">		    <div class="headerFlashNews">
+			<span class='newsTicker'>最新NEWS</span>
+			<a href="/thr_res/acode=1/ctgid=137/bid=1177/tid=13176039/">和田アキ子、TBS特別功労賞を受賞！『おまかせ』終了を前に2度目の快挙「桜に囲まれて幸せ」と満面の笑みで報告</a>
+    </div>
+		<div id="bread" itemscope itemtype="http://schema.org/BreadcrumbList"><span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a href="/" target="_top" itemprop="item"><span itemprop="name">爆サイ.com</span><meta itemprop="position" content="1"></a></span>&nbsp;&gt;&nbsp;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListIt
+
+--- tid=12975517 ---
+"thread_list_ranking_wrapper">
+        <h1 class="categoryBar">北海道の美しい風景ランキング</h1>
+        <div class="photograph_thr_list img">
+          <ul>
+                                  <li>
+              <a href="/thr_res/acode=1/ctgid=104/bid=5830/tid=12975517/">
+                <div class="photograph_thr_list_wrapper">
+                  <div class="photograph_image_wrapper">
+                    <img src="https://img2.bakusai.com/p/img/icons/ico_rankmedal1.svg" alt="ランキングメダル1位" class="photograph_rankmedal">
+                    <img src="https://img2.bakusai.com/m/imagebbs/_nosync/196/501/22877372/240.jpeg?t=1704819225" alt="阿寒湖" class="photograph_image">
+                    <div class="photograph_
+
+--- tid=13038052 ---
+iv>
+                  </div>
+                </div>
+              </a>
+              <div class="clearfix"></div>
+            </li>
+                                              <li>
+              <a href="/thr_res/acode=1/ctgid=104/bid=5830/tid=13038052/">
+                <div class="photograph_thr_list_wrapper">
+                  <div class="photograph_image_wrapper">
+                    <img src="https://img2.bakusai.com/p/img/icons/ico_rankmedal2.svg" alt="ランキングメダル2位" class="photograph_rankmedal">
+                    <img src="https://img2.bakusai.com/m/imagebbs/_nosync/304/208/22902530/240.jpeg?t=1704819225" alt="Telefono espana" class="photograph_image">
+                    <div class=
+
+============================================================
+Step 4: /thr_res/ を含む <ul> ブロック
+============================================================
+<ul>
+
+                                  <li>
+              <a href="/thr_res/acode=1/ctgid=104/bid=5830/tid=12975517/">
+                <div class="photograph_thr_list_wrapper">
+                  <div class="photograph_image_wrapper">
+                    <img src="https://img2.bakusai.com/p/img/icons/ico_rankmedal1.svg" alt="ランキングメダル1位" class="photograph_rankmedal">
+                    <img src="https://img2.bakusai.com/m/imagebbs/_nosync/196/501/22877372/240.jpeg?t=1704819225" alt="阿寒湖" class="photograph_image">
+                    <div class="photograph_thr_title_opacity">
+                                              <div class="photograph_thr_title">
+                        阿寒湖
+                      </div>
+                                                                  <span class="photograph_img_poster_name" itemprop="name">投稿者:Itok1000</span>
+                                                                  <div class="imgbody photograph_thr_post_information">
+                        <div class="time">
+                          03/12&ensp;
+                          <span class="thrimg_chart_space"><i class="fa fa-bar-chart" aria-hidden="true"></i></span><span>172</span>
+                          <span class="thrimg_comment_space"><i class="fa fa-comment-o" aria-hidden="true"></i></span><span>0</span>
+                        </div>
+                      </div>
+                                          </div>
+                  </div>
+                </div>
+              </a>
+              <div class="clearfix"></div>
+            </li>
+                                              <li>
+              <a href="/thr_res/acode=1/ctgid=104/bid=5830/tid=13038052/">
+                <div class="photograph_thr_list_wrapper">
+                  <div class="photograph_image_wrapper">
+                    <img src="https://img2.bakusai.com/p/img/icons/ico_rankmedal2.svg" alt="ランキングメダル2位" class="photograph_rankmedal">
+                    <img src="https://img2.bakusai.com/m/imagebbs/_nosync/304/208/22902530/240.jpeg?t=1704819225" alt="Telefono espana" class="photograph_image">
+                    <div class="photograph_thr_title_opacity">
+                                              <div class="photograph_thr_title">
+                        Telefono espana
+                      </div>
+                                                                  <span class="photograph_img_poster_name" itemprop="name">投稿者:Delta Mexico</span>
+                                         
+</ul>
+
+============================================================
+Step 5: キーワード確認
+============================================================
+  'data-tid': 0回
+  'thr_status_icon': 1回  例: ...cript" src="/js/thr/thr_status_icon.js?t=202603111105"></script> <style>     *{margin:0;padding:0;bo...
+  'weather_thr_list_box': 0回
+  'imgbbs_thr_list': 0回
+  'img_thr': 0回
+  'class="thr': 26回  例: ...              <span class="thrimg_chart_space"><i class="fa fa-bar-chart" aria-hidden="true"></i></s...
+  'imgbbs': 0回
+  'スレッドがありません': 0回
+
+調査完了

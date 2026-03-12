@@ -1,0 +1,63 @@
+﻿============================================================
+Step 1: 「天気」ボードの bid を /bbstop/ から探す
+============================================================
+bbstop/ では見つからず。ctgid 別に検索します...
+  発見: acode=3 ctgid=148 bid=5877  name='過去の天気予報一覧'
+
+→ 使用: https://bakusai.com/thr_tl/acode=3/ctgid=148/bid=5877/
+
+============================================================
+Step 2: スレッド一覧 HTML の構造を解析
+============================================================
+HTML 長さ: 73289 文字
+
+現在のパーサー: <li\s+data-tid= で split → 1 パーツ
+→ スレが検出されない（parseThreadList が機能しない）
+
+============================================================
+Step 3: 代替 HTML 構造の調査
+============================================================
+data-tid を持つタグ: 0 件
+
+/thr_res/ リンク数: 13
+  '/thr_res/acode=3/ctgid=137/bid=1177/tid=13176139/'
+  '/thr_res/acode=3/ctgid=148/bid=5877/tid=TID_LATEST'
+  '/thr_res/acode=3/ctgid=148/bid=5877/tid=TID_LATEST/?area=東京#weekly_weather_down_sp'
+  '/thr_res/acode=3/ctgid=148/bid=5877/tid=13175695/tp=1/'
+  '/thr_res/acode=3/ctgid=148/bid=5877/tid=13174265/tp=1/'
+
+thr_status_icon の出現数: 1
+
+<li> タグ総数: 141
+  ユニークパターン:
+    [47回] '<li class="...">'
+    [36回] '<li id="...">'
+    [24回] '<li>'
+    [10回] '<li id="..." class="...">'
+    [7回] '<link rel="..." as="..." href="..." onload="...">'
+    [7回] '<li class="..." style="...">'
+    [3回] '<li id="..." style="...">'
+    [3回] '<link rel="..." href="...">'
+    [2回] '<link rel="..." type="..." href="..." />'
+    [2回] '<link rel="..." type="..." href="...">'
+
+============================================================
+Step 4: HTML 主要セクションの確認
+============================================================
+<div id=contents>: 46 文字
+
+          <div id="local_rule">天気予報掲示板ローカルルール
+
+============================================================
+Step 5: キーワード出現確認
+============================================================
+  'data-tid': 0回
+  'thr_status_icon': 1回  例: ...cript" src="/js/thr/thr_status_icon.js?t=202603111105"></script> <style>     *{margin:0;padding:0;bo...
+  'thr_tl_item': 0回
+  'thread': 3回  例: ...ma.org/WebPage" id="threadlist"> <meta itemprop="name" content="天気予報掲示板｜爆サイ.com東京版"><meta itemprop="...
+  '過去': 1回  例: ...="dynamic-tid-link">過去の天気予報一覧</a></li>                         <li><a href="/wm_caster_list/acode=3/...
+  'href="/thr_res': 13回  例: ...最新NEWS</span> 			<a href="/thr_res/acode=3/ctgid=137/bid=1177/tid=13176139/">「美しい女神様降臨」篠田麻里子40歳の誕生日を...
+  'class="thr': 20回  例: ...              <span class="thrimg_chart_space"><i class="fa fa-bar-chart" aria-hidden="true"></i></s...
+  'tid=': 17回  例: .../ctgid=137/bid=1177/tid=13176139/">「美しい女神様降臨」篠田麻里子40歳の誕生日を報告、40代への思い語る投稿にファン祝福</a>     </div> 		<div...
+
+調査完了

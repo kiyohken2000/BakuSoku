@@ -1,0 +1,153 @@
+﻿============================================================
+調査 URL: https://bakusai.com/thr_res/acode=4/ctgid=148/bid=1538/tid=1462094/tp=1/
+============================================================
+HTML 長さ: 171493
+
+og:title: '火事 - 山梨天気・災害掲示板｜爆サイ.com甲信越版'
+<title>: なし
+
+<li id=res...>: ['res0_whole', 'res00_block', 'res66_block', 'res67_block', 'res66_block', 'res68_block', 'res69_block', 'res70_block', 'res71_block', 'res72_block']
+
+============================================================
+全 res ブロックの内容
+============================================================
+split パーツ数: 12
+
+  [1] id=res(no _block)_block
+    hidden=True  date=None
+    body=''
+    name=None
+    → '0_whole" >                 <article class="sticky-'
+
+  [2] id=res00_block
+    hidden=False  date=None
+    body=''
+    name=None
+    → '00_block" class="res_block"> \t\t<div class="res_hea'
+
+  [3] id=res66_block
+    hidden=False  date='2020/09/30 09:04'
+    body='↑\n\r\n全スレ荒らすキチガイで全国雑談でも有名な爆さん2連投'
+    name=None
+    → '66_block"             class="res_block">          '
+
+  [4] id=res67_block
+    hidden=False  date='2020/11/02 07:08'
+    body='ハイランド付近で火事か？朝から消防車うるさい'
+    name=None
+    → '67_block"             class="res_block">          '
+
+  [5] id=res66_block
+    hidden=False  date=None
+    body='↑\n\r\n全スレ荒らすキチガイで全国雑談でも有名な爆さん2連投'
+    name='[ 匿名さん\n ]'
+    → '66_block"                 class="res_block">      '
+
+  [6] id=res68_block
+    hidden=False  date='2021/10/02 20:30'
+    body='>>66\n\r\n火祭り好きだろwww'
+    name=None
+    → '68_block"             class="res_block">          '
+
+  [7] id=res69_block
+    hidden=False  date=None
+    body='この投稿は削除されました\n \n \n\n \n \n \n ?\n Good!\n \n \n \n \n <span class="'
+    name=None
+    → '69_block"             class="res_block">          '
+
+  [8] id=res70_block
+    hidden=False  date='2025/02/27 23:13'
+    body='強風と乾燥注意報は火気厳禁'
+    name=None
+    → '70_block"             class="res_block">          '
+
+  [9] id=res71_block
+    hidden=False  date='2025/03/02 22:30'
+    body='野焼きしまくってるからな、日本中\n\r\n岩手のなんかもう重罪レベルだろ'
+    name=None
+    → '71_block"             class="res_block">          '
+
+  [10] id=res72_block
+    hidden=False  date='2026/01/25 08:28'
+    body='この時期に野焼きをする奴は間接的な放火魔です。\n\r\n放火行為を見かけたら水をぶっかけてあげましょう。\n\r\n\n\r\nそもそも悪臭をまき散らすと周りに迷惑なので年中野'
+    name=None
+    → '72_block"             class="res_block">          '
+
+  [11] id=res0_block
+    hidden=True  date='0000/00/00 00:00'
+    body=''
+    name=None
+    → '0_block" class="res_block" style="display:none;"> '
+
+============================================================
+res0_block の完全な HTML
+============================================================
+<li id="res0_block" class="res_block" style="display:none;">
+                    <article itemscope itemtype="http://schema.org/UserComments">
+                        <div class="res_header">
+                            <div class="res_meta_wrap">
+                                <span class="res_rotundate">
+                                    <a href="#res_pos" title="#0へ返信"
+                                        onclick="TextBox1 = document.directForm.body;val=TextBox1.value;TextBox1.value=val+&quot;&gt;&gt;0\n&quot;"><span
+                                            class="blue">#0</span></a>
+                                </span>
+
+                                <span itemprop="commentTime">0000/00/00 00:00</span>
+                                <span class="latestCmnt">最新レス</span>
+                            </div>
+                        </div>
+                        <div class="res_body" itemprop="commentText">
+                            <br>
+                            <div style="clear:left;"></div>
+                        </div>
+                        <div class="name_goodbad_box">
+                            <span>
+                                <div class="name">
+                                    [
+                                                                        <span>匿名さん</span>
+                                    <span class="res_name_kakko">]</span>
+                                </div>
+                            </span>
+                                                    </div>
+                    </article>
+                </li>
+                            </ul>
+                        <script type="text/javascript" src="/js/thr/mqtt_newres_sp.js?t=202603111105"></script>
+                        <script>
+                max_res = 1000;
+            </script>
+                                    <script>
+                // 新着レスのscroll_flag
+                var post_flag = 0;
+                var msg_cnt = 0;
+            </script>
+        
+
+============================================================
+res1_block の完全な HTML
+============================================================
+res1_block なし
+
+============================================================
+rw=1 モードでも確認
+============================================================
+<li id=res...>: ['res0_whole', 'res00_block', 'res1_block', 'res2_block', 'res3_block', 'res4_block', 'res5_block', 'res6_block', 'res7_block', 'res0_block']
+
+rw=1 res0_block:
+id="res0_block" class="res_block" style="display:none;">
+                    <article itemscope itemtype="http://schema.org/UserComments">
+                        <div class="res_header">
+                            <div class="res_meta_wrap">
+                                <span class="res_rotundate">
+                                    <a href="#res_pos" title="#0へ返信"
+                                        onclick="TextBox1 = document.directForm.body;val=TextBox1.value;TextBox1.value=val+&quot;&gt;&gt;0\n&quot;"><span
+                                            class="blue">#0</span></a>
+                                </span>
+
+                                <span itemprop="commentTime">0000/00/00 00:00</span>
+                                <span class="latestCmnt">最新レス</span>
+                            </div>
+                        </div>
+                        <div class="res_body" itemprop="commentText">
+                            <br>
+                            <div styl

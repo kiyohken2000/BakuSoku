@@ -1,0 +1,291 @@
+﻿============================================================
+/thr_res/ リンク周辺の HTML
+============================================================
+
+--- tid=13176006 ---
+気予報</span></div></h1><p class="headbtn"><a href="javascript:history.back();">戻る</a></p></header><div id="container">		    <div class="headerFlashNews">
+			<span class='newsTicker'>最新NEWS</span>
+			<a href="/thr_res/acode=3/ctgid=137/bid=5868/tid=13176006/">ちとせよしの、グリーンのビキニで“最強の美ボディ”を披露白シャツを羽織った抜け感ショットに「スタイル良すぎてビックリ」と絶賛の嵐</a>
+    </div>
+		<div id="bread" itemscope itemtype="http://schema.org/BreadcrumbList"><span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><a href="/" target="_top" itemprop="item"><span itemprop="name">爆サイ.com</span><meta itemprop="position" conten
+
+
+--- tid=13175695 ---
+);
+});
+</script>
+
+<article id="thr0_distance">
+  <section>
+    <h1 class="categoryBar">天気予報 一覧</h1>
+            <div class="weather_thr_list img">
+        <ul>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13175695/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                        <img src="https://img2.bakusai.com/m/imagebbs/_nosync/305/280/22954588/900.jpeg?t=1773228612" alt="沖縄・奄美・鹿児島は大雨や突風に注意">
+                                        </div>
+                   
+
+
+--- tid=13174265 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13174265/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                        <img src="https://img2.bakusai.com/m/imagebbs/_nosync/451/000/22954111/900.jpeg?t=1773183791" alt="穏やかな晴天！日差し暖か空気はヒンヤリ">
+                                        </div>
+                  
+
+
+--- tid=13173689 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13173689/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/376/360/22953904/900.jpeg?t=1773140532" alt="広範囲で青空広がる 特に朝晩寒い">
+          
+
+
+--- tid=13172376 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13172376/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/146/500/22953485/900.jpeg?t=1773099013" alt="関東や北陸で雨や雪/冬の寒さ">
+            
+
+
+--- tid=13171700 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13171700/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/275/445/22953270/900.jpeg?t=1773054131" alt="寒の戻り、関東で雪のおそれ">
+             
+
+
+--- tid=13170511 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13170511/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/218/941/22952822/900.jpeg?t=1773010932" alt="日本海側はくもりや雨、夜遅くは関東も雨に">
+      
+
+
+--- tid=13170003 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13170003/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/182/238/22952671/900.jpeg?t=1772967732" alt="日本海側から少しずつ雲が広がる">
+           
+
+
+--- tid=13169045 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13169045/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/150/199/22952408/900.jpeg?t=1772925313" alt="冬型の気圧配置・北日本は暴風のおそれも">
+       
+
+
+--- tid=13168518 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13168518/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/380/563/22952289/900.jpeg?t=1772881332" alt="日本海側は雨や雪 太平洋側は風が冷たい">
+       
+
+
+--- tid=13167693 ---
+ </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13167693/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/384/500/22951999/900.jpeg?t=1772838191" alt="北日本は荒天 西日本は冬の寒さ">
+           
+
+============================================================
+<ul> の内側を列挙
+============================================================
+
+<ul class="main-nav">
+
+            <li class="nav-item">
+                <div class="nav-title radius-top">本日の天気予報</div>
+                <div class="nav-submenu ">
+                    <ul>
+                        <li><a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=TID_LATEST" class="dynamic-tid-link">本日の天気予報</a></li>
+                        <li><a href="/thr_tl/acode=3/ctgid=148/bid=5877/" class="dynamic-tid-link">過去の天気予報一覧</a></li>
+                        <li><a href="/wm_caster_list/acode=3/ctgid=148/" class="dynamic-tid-link">気象予報士一覧</a></li>
+                    
+</ul>
+
+<ul>
+
+                                                                                                                                                                            <li><a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=TID_LATEST/?area=東京#weekly_weather_down_sp"  class="dynamic-tid-link" target="_self">東京</a></li>
+                                                                                                                                                                                                                                                                                                                    
+</ul>
+
+<ul>
+
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13175695/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                        <img src="https://img2.bakusai.com/m/imagebbs/_nosync/305/280/22954588/900.jpeg?t=1773228612" alt="沖縄・奄美・鹿児島は大雨や突風に注意">
+                                        </div>
+                    <div class="imgbody"><div class="title">
+                                                沖縄・奄美・鹿児島は大雨や突風に注意</div>
+                        <div class="time">
+                                                                                                            6時間前                                                                            <span class="thrimg_chart_space"><i class="fa fa-bar-chart" aria-hidden="true"></i></span><span>228</span>
+                        <span class="thrimg_comment_space"><i class="fa fa-comment-o" aria-hidden="true"></i></span><span>0</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13174265/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                        <img src="https://img2.bakusai.com/m/imagebbs/_nosync/451/000/22954111/900.jpeg?t=1773183791" alt="穏やかな晴天！日差し暖か空気はヒンヤリ">
+                                        </div>
+                    <div class="imgbody"><div class="title">
+                                                穏やかな晴天！日差し暖か空気はヒンヤリ</div>
+                        <div class="time">
+                                                                                                            18時間前                                                                            <span class="thrimg_chart_space"><i class="fa fa-bar-chart" aria-hidden="true"></i></span><span>351</span>
+                        <span class="thrimg_comment_space"><i class="fa fa-comment-o" aria-hidden="true"></i></span><span>0</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+
+                        
+
+            <div class="clearfix"></div>
+          </li>
+                    <li>
+            <a href="/thr_res/acode=3/ctgid=148/bid=5877/tid=13173689/tp=1/">
+                <div class="weather_thr_list_box">
+                                        <div class="image">
+                                            <img src="https://img2.bakusai.com/m/spacer.gif" data-original="https://img2.bakusai.com/m/imagebbs/_nosync/376/360/22953904/900.jpeg?t=1773140532" alt="広範囲で青空広がる 特に朝晩寒い">
+                                        </div>
+                    <div class="imgbody"><div class="title">
+                                            
+</ul>
+============================================================
+tid 付き /thr_res/ リンク一覧
+============================================================
+tid=13176006  href='/thr_res/acode=3/ctgid=137/bid=5868/tid=13176006/'  text='ちとせよしの、グリーンのビキニで“最強の美ボディ”を披露白シャツを羽織った抜け感ショットに「スタイル良すぎてビックリ」と絶賛の嵐'
+tid=13175695  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13175695/tp=1/'  text=''
+tid=13174265  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13174265/tp=1/'  text=''
+tid=13173689  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13173689/tp=1/'  text=''
+tid=13172376  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13172376/tp=1/'  text=''
+tid=13171700  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13171700/tp=1/'  text=''
+tid=13170511  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13170511/tp=1/'  text=''
+tid=13170003  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13170003/tp=1/'  text=''
+tid=13169045  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13169045/tp=1/'  text=''
+tid=13168518  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13168518/tp=1/'  text=''
+tid=13167693  href='/thr_res/acode=3/ctgid=148/bid=5877/tid=13167693/tp=1/'  text=''
