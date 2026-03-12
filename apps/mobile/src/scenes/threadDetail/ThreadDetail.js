@@ -786,7 +786,7 @@ export default function ThreadDetail() {
           <Text style={styles.liveToastText}>新着レス +{toastCount}</Text>
         </Animated.View>
         {/* スクロールトップボタン */}
-        {showScrollBottom && (
+        {displayResponses.length > 0 && (
           <TouchableOpacity
             style={[styles.scrollTopBtn, { backgroundColor: theme.accent }]}
             onPress={() => flatListRef.current?.scrollToOffset({ offset: 0, animated: true })}
