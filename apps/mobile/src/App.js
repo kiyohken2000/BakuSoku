@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import store from 'utils/store'
 import 'utils/ignore'
+import { initRevenueCat } from 'utils/revenuecat'
 import { ThemeContextProvider } from './contexts/ThemeContext'
 import { SettingsContextProvider } from './contexts/SettingsContext'
 import { imageAssets } from 'theme/images'
@@ -14,6 +15,7 @@ export default function App() {
   const [didLoad, setDidLoad] = useState(false)
 
   useEffect(() => {
+    initRevenueCat()
     Promise.all([...imageAssets, ...fontAssets])
       .catch(() => {})
       .then(() => setDidLoad(true))
