@@ -92,6 +92,7 @@
 - [ ] ログイン機能（LINE/Google/X OAuth via expo-web-browser）
 - [ ] AuthContext（ログイン状態管理）
 - [ ] Good/Bad 投票 UI（ログイン後に解放）
+- [ ] スレ作成機能（スレタイ・本文・名前入力、○×モードを渡す POST）
 
 ---
 
