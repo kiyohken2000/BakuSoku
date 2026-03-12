@@ -485,9 +485,13 @@ export default function ThreadDetail() {
     }
   }
 
-  const filteredResponses = responses.filter(
+  const filteredResponsesRaw = responses.filter(
     (r) => !ngWords.some((w) => r.body.includes(w) || r.name.includes(w)),
   )
+  const filteredResponses =
+    pageTitle && !filteredResponsesRaw.some((r) => r.rrid === 0)
+      ? [{ rrid: 0, date: '', body: pageTitle, name: '' }, ...filteredResponsesRaw]
+      : filteredResponsesRaw
 
   const savedRrid = readSet[String(tid)]
 
