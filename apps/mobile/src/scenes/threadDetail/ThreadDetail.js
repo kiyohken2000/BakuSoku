@@ -785,7 +785,17 @@ export default function ThreadDetail() {
           <FontIcon name="wifi" size={12} color="#fff" />
           <Text style={styles.liveToastText}>新着レス +{toastCount}</Text>
         </Animated.View>
-        {/* ????????????rw=1 ?????? */}
+        {/* スクロールトップボタン */}
+        {showScrollBottom && (
+          <TouchableOpacity
+            style={[styles.scrollTopBtn, { backgroundColor: theme.accent }]}
+            onPress={() => flatListRef.current?.scrollToOffset({ offset: 0, animated: true })}
+            activeOpacity={0.8}
+          >
+            <FontIcon name="angle-double-up" size={18} color="#fff" />
+          </TouchableOpacity>
+        )}
+        {/* rw=1モードの一番下ボタン */}
         {readFromStart && showScrollBottom && (
           <TouchableOpacity
             style={[styles.scrollBottomBtn, { backgroundColor: theme.accent }]}
@@ -1118,6 +1128,21 @@ const styles = StyleSheet.create({
   scrollBottomBtn: {
     position: 'absolute',
     bottom: 20,
+    right: 16,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  scrollTopBtn: {
+    position: 'absolute',
+    bottom: 72,
     right: 16,
     width: 42,
     height: 42,
