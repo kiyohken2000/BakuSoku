@@ -123,7 +123,7 @@
 - [x] スプラッシュスクリーン
 - [x] ランディングページ（`apps/web/`、Cloudflare Pages）
 - [x] プライバシーポリシー
-- [ ] ストアメタデータ
+- [[x] ストアメタデータ
 - [ ] App Store 申請
 - [ ] Google Play 申請
 

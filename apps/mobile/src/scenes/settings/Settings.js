@@ -193,7 +193,7 @@ export default function Settings() {
             Version {version}
           </Text>
           <Text style={[styles.appDesc, { color: theme.subText }]}>
-            爆サイ.com 非公式ブラウザアプリ
+            for 爆サイ.com
           </Text>
         </View>
 
