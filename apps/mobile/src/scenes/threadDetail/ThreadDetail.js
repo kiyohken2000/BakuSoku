@@ -117,7 +117,7 @@ export default function ThreadDetail() {
   useEffect(() => {
     if (!isSettingsLoaded) return
     // ????????????????? resumeRrid ?????????
-    resumeRridRef.current = readSet[String(tid)] ?? null
+    resumeRridRef.current = readFromStart ? (readSet[String(tid)] ?? null) : null
     const resumePage = readFromStart ? (readPositions?.[String(tid)] ?? null) : null
     loadThread(resumePage, readFromStart)
   }, [isSettingsLoaded])
@@ -489,8 +489,8 @@ export default function ThreadDetail() {
     (r) => !ngWords.some((w) => r.body.includes(w) || r.name.includes(w)),
   )
   const filteredResponses =
-    pageTitle && !filteredResponsesRaw.some((r) => r.rrid === 0)
-      ? [{ rrid: 0, date: '', body: pageTitle, name: '' }, ...filteredResponsesRaw]
+    pageTitle && filteredResponsesRaw.length === 0
+      ? [{ rrid: 0, date: '', body: pageTitle, name: '' }]
       : filteredResponsesRaw
 
   const savedRrid = readSet[String(tid)]
