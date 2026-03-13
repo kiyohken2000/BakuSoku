@@ -74,6 +74,10 @@ export default function ThreadDetail() {
   const showAnchorPopup = anchorStack.length > 0
   const currentAnchor = anchorStack.length > 0 ? anchorStack[anchorStack.length - 1] : null
 
+  // レスへの返信一覧ポップアップ
+  const [replyListTarget, setReplyListTarget] = useState(null) // rrid
+  const showReplyList = replyListTarget !== null
+
   const [showTitleModal, setShowTitleModal] = useState(false)
   const [showEulaModal, setShowEulaModal] = useState(false)
   const [pendingReplyTo, setPendingReplyTo] = useState(null)
@@ -481,6 +485,11 @@ export default function ThreadDetail() {
     )
   }
 
+  const onRridPress = (rrid) => {
+    Haptics.selectionAsync()
+    setReplyListTarget(rrid)
+  }
+
   const onBlockUser = (item) => {
     const name = item.name?.trim()
     if (!name) return
@@ -650,7 +659,11 @@ export default function ThreadDetail() {
         ]}
       >
         <View style={styles.responseHeader}>
-          <Text style={[styles.rrid, { color: isMyPost ? theme.accent : theme.accent }]}>#{item.rrid}</Text>
+          <Text
+            style={[styles.rrid, { color: theme.accent }]}
+            onPress={() => onRridPress(item.rrid)}
+            suppressHighlighting
+          >#{item.rrid}</Text>
           {isMyPost && <Text style={styles.myPostBadge}>自分</Text>}
           {isReplyToMe && <Text style={styles.replyToMeBadge}>返信</Text>}
           <Text style={[styles.name, { color: theme.subText }]}>{item.name}</Text>
@@ -1116,6 +1129,58 @@ export default function ThreadDetail() {
         </TouchableOpacity>
       </Modal>
 
+      {/* 返信一覧ポップアップ */}
+      <Modal visible={showReplyList} transparent animationType="slide">
+        <View style={styles.replyListOverlay}>
+          <View style={[styles.replyListBox, { backgroundColor: theme.surface }]}>
+            {/* ヘッダー */}
+            <View style={[styles.replyListHeader, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.replyListTitle, { color: theme.text }]}>
+                {`>>${replyListTarget} へのレス`}
+                {(() => {
+                  const count = responses.filter((r) => r.body.includes(`>>${replyListTarget}`)).length
+                  return count > 0 ? <Text style={{ color: theme.subText }}>（{count}件）</Text> : null
+                })()}
+              </Text>
+              <TouchableOpacity onPress={() => setReplyListTarget(null)} hitSlop={8}>
+                <FontIcon name="times" size={16} color={theme.subText} />
+              </TouchableOpacity>
+            </View>
+            {/* 返信リスト */}
+            {(() => {
+              const replies = responses.filter((r) => r.body.includes(`>>${replyListTarget}`))
+              if (replies.length === 0) {
+                return (
+                  <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Text style={{ color: theme.subText, fontSize: 13 }}>返信はありません</Text>
+                  </View>
+                )
+              }
+              return (
+                <ScrollView style={styles.replyListScroll} showsVerticalScrollIndicator={false}>
+                  {replies.map((r) => (
+                    <View key={r.rrid} style={[styles.replyListItem, { borderBottomColor: theme.border }]}>
+                      <View style={styles.replyListItemHeader}>
+                        <Text
+                          style={[styles.replyListRrid, { color: theme.accent }]}
+                          onPress={() => { setReplyListTarget(null); onAnchorPress(r.rrid) }}
+                          suppressHighlighting
+                        >
+                          #{r.rrid}
+                        </Text>
+                        <Text style={[styles.replyListName, { color: theme.subText }]}>{r.name}</Text>
+                        <Text style={[styles.replyListDate, { color: theme.subText }]}>{r.date}</Text>
+                      </View>
+                      {renderBodyWithAnchors(r.body)}
+                    </View>
+                  ))}
+                </ScrollView>
+              )
+            })()}
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={showAnchorPopup} transparent animationType="fade">
         <TouchableOpacity
           style={styles.anchorOverlay}
@@ -1340,8 +1405,8 @@ const styles = StyleSheet.create({
   },
   goodBadRow: { flexDirection: 'row', flex: 1 },
   goodBadText: { fontSize: 12 },
-  replyBtn: { paddingLeft: 8 },
-  responseActions: { flexDirection: 'row', gap: 4 },
+  replyBtn: { paddingHorizontal: 10, paddingVertical: 4 },
+  responseActions: { flexDirection: 'row', gap: 2 },
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -1475,6 +1540,39 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   submitText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  replyListOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  replyListBox: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '70%',
+    paddingBottom: 24,
+  },
+  replyListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  replyListTitle: { fontSize: 14, fontWeight: '700' },
+  replyListScroll: { paddingHorizontal: 12 },
+  replyListItem: {
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  replyListItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  replyListRrid: { fontSize: 12, fontWeight: '700', marginRight: 8 },
+  replyListName: { fontSize: 12, marginRight: 8 },
+  replyListDate: { fontSize: 11, marginLeft: 'auto' },
   anchorOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
