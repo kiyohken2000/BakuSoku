@@ -18,6 +18,7 @@ import ss8 from './assets/imsages/screenshots/8.favorites_boards.jpg'
 import ss9 from './assets/imsages/screenshots/9.favorites_threads.jpg'
 import ss10 from './assets/imsages/screenshots/10.history.jpg'
 import ss11 from './assets/imsages/screenshots/11.settings_1.jpg'
+import bmcButton from './assets/imsages/bmc-button.png'
 
 const screenshots = [
   { src: ss1, caption: '掲示板一覧' },
@@ -113,7 +114,9 @@ function Landing() {
           広告なし・ダークモード対応の非公式ブラウザアプリ。
         </p>
         <div className="hero-badges">
-          <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge" />
+          <a href="https://apps.apple.com/jp/app/id6760444481" target="_blank" rel="noopener noreferrer">
+            <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge active" />
+          </a>
           <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
             <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
           </a>
@@ -170,7 +173,9 @@ function Landing() {
         <h2>今すぐダウンロード</h2>
         <p>爆サイ.com をストレスなく楽しもう。</p>
         <div className="hero-badges">
-          <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge" />
+          <a href="https://apps.apple.com/jp/app/id6760444481" target="_blank" rel="noopener noreferrer">
+            <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge active" />
+          </a>
           <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
             <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
           </a>
@@ -179,6 +184,11 @@ function Landing() {
 
       {/* ===== Footer ===== */}
       <footer className="footer">
+        <div className="bmc">
+          <a href="https://buymeacoffee.com/votepurchase" target="_blank" rel="noopener noreferrer">
+            <img src={bmcButton} alt="Buy me a coffee" className="bmc-button" />
+          </a>
+        </div>
         <p>
           <a href="#/privacy">プライバシーポリシー</a>
           {' / '}

@@ -16,7 +16,8 @@
       "Bash(git -C /c/Users/all/develop/expo/bakusoku log --stat --oneline HEAD~5..HEAD)",
       "Bash(git -C /c/Users/all/develop/expo/bakusoku log --pretty=format:\"%h %s\" --date=short | head -20)",
       "Bash(cd C:\\\\Users\\\\all\\\\develop\\\\expo\\\\bakusoku/apps/mobile && npm install 2>&1 | tail -20)",
-      "Bash(cd /c/Users/all/develop/expo/bakusoku/apps/mobile && npm install 2>&1 | tail -20)"
+      "Bash(cd /c/Users/all/develop/expo/bakusoku/apps/mobile && npm install 2>&1 | tail -20)",
+      "Bash(cd C:/Users/all/develop/expo/bakusoku/apps/web && npm run build && npx wrangler pages deploy dist --project-name bakusoku --commit-dirty=true)"
     ]
   }
 }
