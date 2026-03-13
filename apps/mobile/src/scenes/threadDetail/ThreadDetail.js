@@ -558,6 +558,20 @@ export default function ThreadDetail() {
       ? [{ rrid: 0, date: '', body: pageTitle, name: '' }]
       : filteredResponsesRaw
 
+  // 各 rrid への返信件数 { [rrid]: count }
+  const replyCounts = useMemo(() => {
+    const counts = {}
+    for (const r of responses) {
+      const anchors = r.body.match(/>>(\d+)/g)
+      if (!anchors) continue
+      for (const a of anchors) {
+        const n = parseInt(a.slice(2), 10)
+        counts[n] = (counts[n] || 0) + 1
+      }
+    }
+    return counts
+  }, [responses])
+
   const savedRrid = readSet[String(tid)]
 
   // 「ここまで読んだ」セパレーターは最初から読むモードのときのみ表示
@@ -664,6 +678,17 @@ export default function ThreadDetail() {
             onPress={() => onRridPress(item.rrid)}
             suppressHighlighting
           >#{item.rrid}</Text>
+          {replyCounts[item.rrid] > 0 && (
+            <TouchableOpacity
+              onPress={() => onRridPress(item.rrid)}
+              hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+              style={styles.replyCountBtn}
+            >
+              <Text style={[styles.replyCountText, { color: theme.accent }]}>
+                {replyCounts[item.rrid]}件
+              </Text>
+            </TouchableOpacity>
+          )}
           {isMyPost && <Text style={styles.myPostBadge}>自分</Text>}
           {isReplyToMe && <Text style={styles.replyToMeBadge}>返信</Text>}
           <Text style={[styles.name, { color: theme.subText }]}>{item.name}</Text>
@@ -1394,7 +1419,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     flexWrap: 'wrap',
   },
-  rrid: { fontSize: 12, fontWeight: '700', marginRight: 8 },
+  rrid: { fontSize: 12, fontWeight: '700', marginRight: 4 },
+  replyCountBtn: { marginRight: 8 },
+  replyCountText: { fontSize: 11, fontWeight: '600' },
   name: { fontSize: 12, marginRight: 8 },
   date: { fontSize: 11, marginLeft: 'auto' },
   body: { fontSize: 14, lineHeight: 18 },
