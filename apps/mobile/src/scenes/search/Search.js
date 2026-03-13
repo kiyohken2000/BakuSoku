@@ -27,9 +27,12 @@ export default function Search() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState(null)
   const [searched, setSearched] = useState(false)
   const [searchedQuery, setSearchedQuery] = useState('')
+  const [nextPage, setNextPage] = useState(null)
+  const currentQueryRef = useRef('')
 
   const onSearch = async () => {
     if (!query.trim()) return
@@ -38,13 +41,33 @@ export default function Search() {
     setError(null)
     setSearched(true)
     setSearchedQuery(query.trim())
+    currentQueryRef.current = query.trim()
+    setNextPage(null)
     try {
-      const res = await searchApi(acode, query.trim())
+      const { results: res, nextPage: np } = await searchApi(acode, query.trim(), 1)
       setResults(res)
+      setNextPage(np)
     } catch (e) {
       setError(e.message || 'エラーが発生しました')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const onLoadMore = async () => {
+    if (!nextPage || isLoadingMore) return
+    setIsLoadingMore(true)
+    try {
+      const { results: more, nextPage: np } = await searchApi(acode, currentQueryRef.current, nextPage)
+      setResults((prev) => {
+        const seenTids = new Set(prev.map((r) => r.tid))
+        return [...prev, ...more.filter((r) => !seenTids.has(r.tid))]
+      })
+      setNextPage(np)
+    } catch (e) {
+      // サイレントに失敗
+    } finally {
+      setIsLoadingMore(false)
     }
   }
 
@@ -54,6 +77,7 @@ export default function Search() {
     setSearched(false)
     setSearchedQuery('')
     setError(null)
+    setNextPage(null)
     inputRef.current?.focus()
   }
 
@@ -156,6 +180,8 @@ export default function Search() {
               </View>
             </TouchableOpacity>
           )}
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.3}
           ListEmptyComponent={
             <View style={styles.center}>
               <Text style={{ color: theme.subText }}>
@@ -164,6 +190,11 @@ export default function Search() {
                   : 'キーワードを入力して検索'}
               </Text>
             </View>
+          }
+          ListFooterComponent={
+            isLoadingMore ? (
+              <ActivityIndicator color={theme.accent} style={{ padding: 16 }} />
+            ) : null
           }
         />
       )}

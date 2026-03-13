@@ -774,7 +774,14 @@ async function _submitCushion(html, originalUrl, referer) {
   return { status: 'error' }
 }
 
-export async function search(acode, word) {
-  const html = await doGet(`/sch_all/acode=${acode}/word=${encodeURIComponent(word)}/`)
-  return parseSearch(html)
+export async function search(acode, word, page = 1) {
+  const encoded = encodeURIComponent(word)
+  const path = page > 1
+    ? `/sch_thr_thread/acode=${acode}/word=${encoded}/p=${page}/`
+    : `/sch_thr_thread/acode=${acode}/word=${encoded}/`
+  const html = await doGet(path)
+  const results = parseSearch(html)
+  const nextPageMatch = html.match(/href="\/sch_thr_thread\/[^"]+\/p=(\d+)\/"/)
+  const nextPage = nextPageMatch ? parseInt(nextPageMatch[1], 10) : null
+  return { results, nextPage }
 }

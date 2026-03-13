@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   RefreshControl,
   Linking,
+  TextInput,
 } from 'react-native'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute } from '@react-navigation/native'
@@ -40,6 +41,9 @@ export default function ThreadList() {
   const openInBrowser = () => Linking.openURL(boardUrl)
 
   const [menuItem, setMenuItem] = useState(null)
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const searchInputRef = useRef(null)
 
   const onLongPress = (item) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -116,9 +120,11 @@ export default function ThreadList() {
     }
   }
 
-  const filteredThreads = threads.filter(
-    (t) => !ngWords.some((w) => t.title.includes(w)),
-  )
+  const filteredThreads = threads.filter((t) => {
+    if (ngWords.some((w) => t.title.includes(w))) return false
+    if (searchQuery.trim()) return t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    return true
+  })
 
   const renderThread = ({ item }) => {
     const isRead = readSet[item.tid] !== undefined
@@ -179,6 +185,16 @@ export default function ThreadList() {
           {boardName}
         </Text>
         <View style={styles.headerRight}>
+          <TouchableOpacity
+            onPress={() => {
+              setShowSearch((v) => !v)
+              setSearchQuery('')
+              setTimeout(() => searchInputRef.current?.focus(), 50)
+            }}
+            style={styles.headerIconBtn}
+          >
+            <FontIcon name={showSearch ? 'times' : 'search'} size={16} color={showSearch ? theme.accent : theme.headerText} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={openInBrowser} style={styles.headerIconBtn}>
             <FontIcon name="external-link" size={16} color={theme.headerText} />
           </TouchableOpacity>
@@ -187,6 +203,28 @@ export default function ThreadList() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {showSearch && (
+        <View style={[styles.searchBar, { backgroundColor: theme.header, borderBottomColor: theme.border }]}>
+          <FontIcon name="search" size={14} color={theme.subText} style={{ marginRight: 6 }} />
+          <TextInput
+            ref={searchInputRef}
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="スレタイを検索..."
+            placeholderTextColor={theme.subText}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <FontIcon name="times-circle" size={15} color={theme.subText} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
 
       {isLoading ? (
         <View style={styles.center}>
@@ -295,4 +333,16 @@ const styles = StyleSheet.create({
   },
   metaRight: { flexDirection: 'row', alignItems: 'center' },
   metaText: { fontSize: 11 },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 4,
+  },
 })
