@@ -282,12 +282,10 @@ export function parseThreadList(html) {
   }
 
   // image-board layout fallback:
-  //   weather_thr_list_box       (e.g. bid=5877 weather forecast archive)
+  //   weather_thr_list_box        (e.g. bid=5877 weather forecast archive)
   //   photograph_thr_list_wrapper (e.g. bid=5830 landscape photo boards)
-  const isImageBoard =
-    html.includes('weather_thr_list_box') ||
-    html.includes('photograph_thr_list_wrapper')
-  if (threads.length === 0 && isImageBoard) {
+  //   class="thr_list img"        (e.g. bid=5868 gravure news, image boards)
+  if (threads.length === 0) {
     const wRegex =
       /<li>\s*<a\s+href="(\/thr_res\/[^"]*\/tid=(\d+)[^"]*)"[^>]*>([\s\S]*?)<\/a>/g
     let wm
