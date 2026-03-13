@@ -685,7 +685,7 @@ export default function ThreadDetail() {
               style={styles.replyCountBtn}
             >
               <Text style={[styles.replyCountText, { color: theme.accent }]}>
-                {replyCounts[item.rrid]}件
+                {replyCounts[item.rrid]}件の返信
               </Text>
             </TouchableOpacity>
           )}
