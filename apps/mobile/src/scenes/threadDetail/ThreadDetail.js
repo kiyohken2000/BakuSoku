@@ -34,7 +34,12 @@ export default function ThreadDetail() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, tid, title } = route.params
-  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, isSettingsLoaded } = useSettings()
+  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, threadReadModes, setThreadReadMode, isSettingsLoaded } = useSettings()
+
+  // スレ固有の上書き設定があればそちらを優先、なければグローバルデフォルトを使用
+  const effectiveReadFromStart = threadReadModes[String(tid)] !== undefined
+    ? threadReadModes[String(tid)]
+    : readFromStart
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const flatListRef = useRef(null)
@@ -90,8 +95,8 @@ export default function ThreadDetail() {
 
   // MQTT ????????
   const [mqttConnected, setMqttConnected] = useState(false)
-  const readFromStartRef = useRef(readFromStart)  // stale closure ??
-  useEffect(() => { readFromStartRef.current = readFromStart }, [readFromStart])
+  const readFromStartRef = useRef(effectiveReadFromStart)
+  useEffect(() => { readFromStartRef.current = effectiveReadFromStart }, [effectiveReadFromStart])
 
   // ????????????????????????????
   const resumeRridRef = useRef(null)
@@ -112,15 +117,14 @@ export default function ThreadDetail() {
     try {
       await clearThreadCache(tid)
     } catch {}
-    await loadThread(null, readFromStart)
+    await loadThread(null, effectiveReadFromStart)
   }
 
   useEffect(() => {
     if (!isSettingsLoaded) return
-    // ????????????????? resumeRrid ?????????
-    resumeRridRef.current = readFromStart ? (readSet[String(tid)] ?? null) : null
-    const resumePage = readFromStart ? (readPositions?.[String(tid)] ?? null) : null
-    loadThread(resumePage, readFromStart)
+    resumeRridRef.current = effectiveReadFromStart ? (readSet[String(tid)] ?? null) : null
+    const resumePage = effectiveReadFromStart ? (readPositions?.[String(tid)] ?? null) : null
+    loadThread(resumePage, effectiveReadFromStart)
   }, [isSettingsLoaded])
 
   // LIVE ????
@@ -178,8 +182,8 @@ export default function ThreadDetail() {
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true)
-    await loadThread(null, readFromStart)
-  }, [readFromStart])
+    await loadThread(null, effectiveReadFromStart)
+  }, [effectiveReadFromStart])
 
   // ?????????????? loadNewerResponses ????? ref?onScrollEndDrag ? stale closure ???
   const loadNewerResponsesRef = useRef(null)
@@ -187,13 +191,13 @@ export default function ThreadDetail() {
 
   // readFromStart ?????????????????
   const onScrollEndDrag = useCallback((e) => {
-    if (!readFromStart) return
+    if (!effectiveReadFromStart) return
     const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent
     const distanceFromBottom = contentSize.height - layoutMeasurement.height - contentOffset.y
     if (distanceFromBottom < -24) {
       loadNewerResponsesRef.current?.()
     }
-  }, [readFromStart])
+  }, [effectiveReadFromStart])
 
   const loadThread = async (initialPage, rfs) => {
     setError(null)
@@ -287,10 +291,9 @@ export default function ThreadDetail() {
   }
 
   const toggleReadMode = () => {
-    const next = !readFromStart
-    setReadFromStart(next)
+    const next = !effectiveReadFromStart
+    setThreadReadMode(String(tid), next)
     setResponses([])
-    // ???????????
     loadThread(null, next)
   }
 
@@ -513,7 +516,7 @@ export default function ThreadDetail() {
         setPostBody('')
         setPostName('')
         setShowPostModal(false)
-        await loadThread(null, readFromStart)
+        await loadThread(null, effectiveReadFromStart)
       } else {
         Alert.alert('エラー', `投稿に失敗しました\nstatus: ${result?.status ?? 'undefined'}`)
       }
@@ -780,7 +783,7 @@ export default function ThreadDetail() {
           }
           ListHeaderComponent={null}
           ListFooterComponent={
-            readFromStart ? (
+            effectiveReadFromStart ? (
               // ?????????????(??): ??????? or ???????
               loadingNewer ? (
                 <View style={styles.autoLoadIndicator}>
@@ -804,10 +807,10 @@ export default function ThreadDetail() {
             )
           }
           onEndReached={() => {
-            if (readFromStart && hasNewerPages && !loadingNewer) {
+            if (effectiveReadFromStart && hasNewerPages && !loadingNewer) {
               loadNewerResponsesRef.current?.()
             }
-            if (!readFromStart && hasOlderPages && !loadingOlder) {
+            if (!effectiveReadFromStart && hasOlderPages && !loadingOlder) {
               loadOlderResponses()
             }
           }}
@@ -851,7 +854,7 @@ export default function ThreadDetail() {
           </TouchableOpacity>
         )}
         {/* rw=1モードの一番下ボタン */}
-        {readFromStart && showScrollBottom && (
+        {effectiveReadFromStart && showScrollBottom && (
           <TouchableOpacity
             style={[styles.scrollBottomBtn, { backgroundColor: theme.accent }]}
             onPress={() => flatListRef.current?.scrollToEnd({ animated: true })}
@@ -890,9 +893,9 @@ export default function ThreadDetail() {
               style={styles.menuItem}
               onPress={() => { toggleReadMode(); setShowMenu(false) }}
             >
-              <FontIcon name={readFromStart ? 'arrow-right' : 'arrow-up'} size={15} color={theme.text} style={{ width: 22 }} />
+              <FontIcon name={effectiveReadFromStart ? 'arrow-right' : 'arrow-up'} size={15} color={theme.text} style={{ width: 22 }} />
               <Text style={[styles.menuItemText, { color: theme.text }]}>
-                {readFromStart ? '最新順で読む' : '>>1から読む'}
+                {effectiveReadFromStart ? '最新順で読む' : '>>1から読む'}
               </Text>
             </TouchableOpacity>
             <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />

@@ -33,6 +33,8 @@ export const SettingsContextProvider = ({ children }) => {
   const [postEulaAccepted, setPostEulaAcceptedState] = useState(false)
   // rw=1 モードで最後に読んでいたページ番号 { [tid]: page }
   const [readPositions, setReadPositionsState] = useState({})
+  // スレごとの表示モード上書き { [tid]: boolean } — undefined の場合はグローバルデフォルトを使用
+  const [threadReadModes, setThreadReadModesState] = useState({})
 
   useEffect(() => {
     ;(async () => {
@@ -47,6 +49,7 @@ export const SettingsContextProvider = ({ children }) => {
       setMemoState(await load('@bakusai_memo', ''))
       setPostEulaAcceptedState(await load('@bakusai_post_eula', false))
       setReadPositionsState(await load('@bakusai_readpos', {}))
+      setThreadReadModesState(await load('@bakusai_thread_read_modes', {}))
       setIsSettingsLoaded(true)
     })()
   }, [])
@@ -134,6 +137,13 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_post_eula', true)
   }
 
+  // スレごとの表示モード上書きを保存
+  const setThreadReadMode = (tid, mode) => {
+    const next = { ...threadReadModes, [String(tid)]: mode }
+    setThreadReadModesState(next)
+    save('@bakusai_thread_read_modes', next)
+  }
+
   // rw=1 モードの再開ページを保存（tid → page number）
   const saveReadPosition = (tid, page) => {
     if (!page || page < 1) return
@@ -155,6 +165,7 @@ export const SettingsContextProvider = ({ children }) => {
     setMemoState('')
     setPostEulaAcceptedState(false)
     setReadPositionsState({})
+    setThreadReadModesState({})
   }
 
   // 成人・ギャンブルカテゴリ表示判定
@@ -193,6 +204,8 @@ export const SettingsContextProvider = ({ children }) => {
         acceptPostEula,
         readPositions,
         saveReadPosition,
+        threadReadModes,
+        setThreadReadMode,
         resetAllSettings,
       }}
     >
