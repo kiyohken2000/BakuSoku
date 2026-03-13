@@ -14,9 +14,9 @@ BakuSoku
 
 ### サブタイトル
 ```
-for 爆サイ.com
+ローカルクチコミ掲示板
 ```
-※ 30字以内。現在 12字。
+※ 30字以内。現在 11字。
 
 ### プロモーションテキスト（検索結果上部に表示・170字以内）
 ```
@@ -89,12 +89,12 @@ BakuSoku は、爆サイ.com を快適に閲覧するための非公式ブラウ
 
 ### 年齢レーティング
 ```
-17+（ユーザー生成コンテンツ含む・成人向けカテゴリあり）
+18+（ユーザー生成コンテンツ含む・成人向けカテゴリあり）
 ```
 レーティング設定時の回答:
 - 「ユーザー生成コンテンツ」→ あり（掲示板への書き込み機能）
-- 「まれ/軽度の成人向けコンテンツ」→ あり
-- 「まれ/軽度の汚い言葉」→ あり
+- 「頻繁/激しい成人向けコンテンツ」→ あり（ユーザー投稿に含まれる可能性）
+- 「頻繁/激しい汚い言葉」→ あり（ユーザー投稿に含まれる可能性）
 - 「無制限のウェブアクセス」→ なし
 - 「アルコール・タバコ」→ なし
 - 「ギャンブル」→ なし
@@ -148,12 +148,17 @@ All of the above are implemented natively and do not exist on the website.
 
 ## User-Generated Content Moderation (Guideline 1.2)
 
-The app displays posts from bakusai.com's forums. The following moderation tools are available:
+The app displays posts from bakusai.com's forums, an adult-rated (18+) regional bulletin board. The following moderation tools are available in-app:
 
-- **NG Word Filter**: Users can register keywords (Settings → NG Words) to automatically hide any posts containing those keywords.
-- **Report**: Posts on bakusai.com can be reported through the website's own moderation system. The app provides a "Open in Browser" option via long-press context menu on any thread, allowing users to access bakusai.com's reporting functionality.
+- **Age Rating**: The app is rated 18+.
+- **EULA Agreement**: Users must agree to the Terms of Service (which explicitly state no tolerance for objectionable content or abusive behavior) before posting any content.
+- **NG Word Filter**: Users can register keywords (Settings → NG Words) to automatically hide any posts containing those keywords. This immediately removes matching posts from the feed without scrolling past them.
+- **Block User**: Long-pressing any post reveals a "ブロック" (Block) option. This adds the poster's display name to the NG filter, immediately hiding all posts from that user across the app.
+- **Report Objectionable Content**: Long-pressing any post reveals a "通報" (Report) option, which opens bakusai.com's dedicated report page in the browser. Reports submitted through bakusai.com are reviewed by bakusai.com's moderation team.
+- **Contact Developer**: Users can contact the developer directly via the Support page linked in Settings → Support (https://bakusoku.pages.dev/#/support). A dedicated contact email is also accessible from the support page.
+- **Developer Response**: The developer commits to reviewing flagged content reports forwarded to the developer within 24 hours.
 
-Content moderation on bakusai.com is handled by bakusai.com's own moderation team.
+Content hosting and primary moderation on bakusai.com is handled by bakusai.com's own moderation team. This app provides additional client-side controls on top of the platform's own moderation system.
 
 ## Third-Party Content
 

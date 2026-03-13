@@ -34,7 +34,7 @@ export default function ThreadDetail() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, tid, title } = route.params
-  const { ngWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, isSettingsLoaded } = useSettings()
+  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, isSettingsLoaded } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const flatListRef = useRef(null)
@@ -459,6 +459,39 @@ export default function ThreadDetail() {
     setTimeout(() => setCopiedRrid(null), 1500)
   }
 
+  const onReport = (item) => {
+    const url = `https://bakusai.com/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/`
+    Alert.alert(
+      '通報',
+      `>>>${item.rrid} を通報しますか？\nブラウザで bakusai.com の通報ページを開きます。`,
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        { text: '通報する', onPress: () => Linking.openURL(url) },
+      ],
+    )
+  }
+
+  const onBlockUser = (item) => {
+    const name = item.name?.trim()
+    if (!name) return
+    if (ngWords.includes(name)) {
+      Alert.alert('ブロック済み', `「${name}」はすでにNGワードに登録されています。`)
+      return
+    }
+    Alert.alert(
+      'ユーザーをブロック',
+      `「${name}」をブロックしますか？\nこのユーザーの投稿がNGワードとして非表示になります。`,
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: 'ブロックする',
+          style: 'destructive',
+          onPress: () => setNgWords([...ngWords, name]),
+        },
+      ],
+    )
+  }
+
   const onPost = async () => {
     if (!postBody.trim() || !formFields) return
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -610,6 +643,22 @@ export default function ThreadDetail() {
               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
             >
               <FontIcon name="clipboard" size={13} color={theme.subText} />
+            </TouchableOpacity>
+            {item.name?.trim() ? (
+              <TouchableOpacity
+                style={styles.replyBtn}
+                onPress={() => onBlockUser(item)}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <FontIcon name="ban" size={13} color={theme.subText} />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity
+              style={styles.replyBtn}
+              onPress={() => onReport(item)}
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            >
+              <FontIcon name="flag" size={13} color={theme.subText} />
             </TouchableOpacity>
           </View>
         </View>
