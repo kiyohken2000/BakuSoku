@@ -293,6 +293,7 @@ export default function ThreadDetail() {
   const toggleReadMode = () => {
     const next = !effectiveReadFromStart
     setThreadReadMode(String(tid), next)
+    resumeRridRef.current = null  // モード切替後は初期位置スクロールをリセット
     setResponses([])
     loadThread(null, next)
   }
@@ -537,9 +538,9 @@ export default function ThreadDetail() {
 
   const savedRrid = readSet[String(tid)]
 
-  // ?????????????????? displayResponses ????renderItem ? View ????
+  // 「ここまで読んだ」セパレーターは最初から読むモードのときのみ表示
   const displayResponses = useMemo(() => {
-    if (!savedRrid || filteredResponses.length === 0) return filteredResponses
+    if (!effectiveReadFromStart || !savedRrid || filteredResponses.length === 0) return filteredResponses
     const idx = filteredResponses.findIndex((r) => r.rrid === savedRrid)
     if (idx < 0) return filteredResponses
     return [
@@ -547,7 +548,7 @@ export default function ThreadDetail() {
       { rrid: '__resume_separator__', isSeparator: true },
       ...filteredResponses.slice(idx + 1),
     ]
-  }, [filteredResponses, savedRrid])
+  }, [filteredResponses, savedRrid, effectiveReadFromStart])
 
   // ?????????????????displayResponses ? index ????
   const searchMatches = useMemo(() => {
