@@ -30,6 +30,7 @@ export const SettingsContextProvider = ({ children }) => {
   // スレ表示モード: false=最新から(デフォルト) / true=最初から (全スレ共通・永続化)
   const [readFromStart, setReadFromStartState] = useState(true)
   const [memo, setMemoState] = useState('')
+  const [appEulaAccepted, setAppEulaAcceptedState] = useState(false)
   const [postEulaAccepted, setPostEulaAcceptedState] = useState(false)
   // rw=1 モードで最後に読んでいたページ番号 { [tid]: page }
   const [readPositions, setReadPositionsState] = useState({})
@@ -49,6 +50,7 @@ export const SettingsContextProvider = ({ children }) => {
       setSeenCounts(await load('@bakusai_seencounts', {}))
       setReadFromStartState(await load('@bakusai_read_from_start', true))
       setMemoState(await load('@bakusai_memo', ''))
+      setAppEulaAcceptedState(await load('@bakusai_app_eula', false))
       setPostEulaAcceptedState(await load('@bakusai_post_eula', false))
       setReadPositionsState(await load('@bakusai_readpos', {}))
       setThreadReadModesState(await load('@bakusai_thread_read_modes', {}))
@@ -135,6 +137,11 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_memo', v)
   }
 
+  const acceptAppEula = () => {
+    setAppEulaAcceptedState(true)
+    save('@bakusai_app_eula', true)
+  }
+
   const acceptPostEula = () => {
     setPostEulaAcceptedState(true)
     save('@bakusai_post_eula', true)
@@ -175,6 +182,7 @@ export const SettingsContextProvider = ({ children }) => {
     setSeenCounts({})
     setReadFromStartState(true)
     setMemoState('')
+    setAppEulaAcceptedState(false)
     setPostEulaAcceptedState(false)
     setReadPositionsState({})
     setThreadReadModesState({})
@@ -213,6 +221,8 @@ export const SettingsContextProvider = ({ children }) => {
         memo,
         setMemo,
         showRestricted,
+        appEulaAccepted,
+        acceptAppEula,
         postEulaAccepted,
         acceptPostEula,
         readPositions,

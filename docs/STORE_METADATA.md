@@ -139,7 +139,7 @@ Native features not available on bakusai.com mobile:
 
 ## UGC Moderation (Guideline 1.2)
 App is rated 18+. bakusai.com is an adult-rated regional forum.
-- EULA: Users agree to no-tolerance terms before posting.
+- EULA: On first launch, a full-screen Terms & Content Policy screen must be accepted before accessing the app. Terms explicitly state 18+ age requirement and zero tolerance for objectionable content or abusive users.
 - NG Word Filter: Hides posts matching registered keywords instantly.
 - Block User: Tap flag icon on any post → adds poster's name to NG filter, hiding all their posts.
 - Report: Tap flag icon → opens bakusai.com report page in browser.
@@ -291,6 +291,42 @@ IARC レーティング設定で回答:
 ### フィーチャーグラフィック（Google Play 必須）
 - サイズ: 1024 x 500 px
 - 内容案: オレンジ(#f97316)グラデーション背景 + アプリアイコン + "BakuSoku" ロゴ + 「爆サイ.com を、もっと快適に。」
+
+---
+
+## App Store Review レビュアーへの返信文
+
+### 2回目却下（Guideline 1.2 - EULA）に対する返信
+
+```
+Thank you for your continued review.
+
+We have addressed the outstanding Guideline 1.2 issue regarding EULA.
+
+**Change made:**
+We added a mandatory full-screen Terms & Content Policy screen that is presented to every user on first launch. Users cannot access any part of the app until they scroll through and accept the terms.
+
+The terms screen explicitly states:
+- The app is for users aged 18 and over
+- Zero tolerance for objectionable content (harassment, defamation, threats, illegal content, spam, etc.) and abusive users
+- Violations will result in content removal and user restriction
+- Users can report objectionable content via the in-app Report button on each post
+- Users can block abusive users via the in-app Block User button on each post
+- Reports are reviewed within 24 hours
+- Contact information (support page) is available in Settings
+
+All previously addressed items remain in place:
+- Age rating: 18+
+- NG Word Filter (hide posts by keyword)
+- Block User (per-post button)
+- Report (per-post button, opens bakusai.com report page)
+- Developer contact: https://bakusoku.pages.dev/#/support
+- 24-hour report response commitment
+
+We believe the app now fully complies with Guideline 1.2. Please let us know if any further changes are needed.
+
+Thank you for your time.
+```
 
 ---
 
