@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ja">
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+<meta charset="UTF-8">
+<title>エラー｜爆サイ.com</title>
+<meta property="og:url" content="https://bakusai.com/error/">
+<meta property="og:title" content="エラー｜爆サイ.com">
+<meta property="og:type" content="article">
+<meta property="og:description" content="アクセスエラーです。">
+<meta property="og:image" content="https://img2.bakusai.com/p/img/areaIndex_ogp_00_v2.jpg" alt="爆サイ.com 版">
+<meta property="og:site_name" content="爆サイ.com−日本最大のローカルクチコミ掲示板">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@bakusai_com" />
+<script type="application/javascript" src="//anymind360.com/js/19262/ats.js"></script>
+<link rel="preload" as="style" href="/css/bakusai/sp/navi.css?t=202603111105" onload="this.onload=null;this.rel='stylesheet'">
+<script type="text/javascript" src="//x9.shinobi.jp/ufo/453135125" charset="utf-8" async></script>
+<script>
+var mybkc=localStorage.getItem('cga');
+if(!mybkc){	var i = Math.floor( Math.random() * 100); if(i === 0){ localStorage.setItem('cga',1); mybkc=1; }else{ localStorage.setItem('cga',0); }}
+</script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-149476534-1"></script>
+<script type="text/javascript" src="/js/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="/js/css_browser_selector.js"></script>
+<!-- <script type="text/javascript" src="/js/jquery-ui/jquery-ui.js"></script> -->
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+<script>
+var $guideUrl = location.href.split("/");
+var $guidePsaa = $guideUrl[$guideUrl.length -4];
+
+if($guidePsaa == 'guide' || '' == '5817') {
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2PES2T0K13');
+} else if($guidePsaa == 'caster' || $guidePsaa == 'wm_caster_list' || '' == '5877') {
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3FHDCJY6LS');
+} else {
+	if(mybkc==1)
+	{
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-149476534-1');
+	  gtag('config', 'G-ZS2YEKWBDD');
+	}
+}
+
+// ハンバーガーメニュー生成(SP版)
+$(document).ready(function() {
+    var menu_html = '';
+    var isAreaTopSp = (location.pathname || '').indexOf('/areatop') !== -1;
+
+    if (isAreaTopSp) {
+        $('body').addClass('areatop-page');
+    }
+
+    if ('' == 1) {
+        menu_html = menu_html +
+        '<div id="login_fixed"></div>' +
+        '<div id="menu_header" class="header_login">' +
+        '<nav>';
+    }else{
+        menu_html = menu_html +
+        '<div id="logout_fixed"></div>' +
+        '<div id="menu_header" >' +
+        '<nav>';
+    }
+
+    if ('') {
+        menu_html = menu_html +
+            '<ul id="menu_navi" style="width: 315px;">';
+    } else {
+        menu_html = menu_html +
+            '<ul id="menu_navi">';
+    }
+
+    menu_html = menu_html +
+                // '<div style="text-align: center;">' +
+                //     '<img src="https://img2.bakusai.com/p/img/bakusai_menu_image.gif" border="0" width="134" height="61" alt="爆サイ.com" class="bakusai_menu_image">' +
+                // '</div>';
+                '<a href="/" target="_top" title="爆サイTOPへ"><li id="view_user_top_page"><i class="fa fa-home" aria-hidden="true"></i>爆サイTOPへ</li></a>';
+    
+    if ('') {
+        menu_html = menu_html +
+                '<li id="menu_title1" style="width: 295px;">会員機能</li>';
+    } else {
+        menu_html = menu_html +
+                '<li id="menu_title1">会員機能</li>';
+    }
+
+    if ('' == 1) {
+        menu_html = menu_html +
+				'<a href="/mypage/" target="_top" title="マイページ"><li id="view_user_mypage"><i class="fa fa-user"></i>マイページ</li></a>' +
+                '<div class="unread_notification_outer second"><div class="unread_notification_count">?</div></div>' +
+                '<a href="/auth/logout/" style="text-decoration: none;" target="_top" title="ログアウト"><li id="view_user_logout"><i class="fa fa-sign-out"></i>ログアウト</li></a>';
+    } else {
+        menu_html = menu_html +
+                '<a href="/auth/login/" target="_top" title="ログイン"><li id="view_user_login"><i class="fa fa-sign-in"></i>ログイン</li></a>' +
+		'<a href="/auth/login/with=line" target="_top" title="LINEでログイン"><li id="view_user_login_line"><img src="https://img2.bakusai.com/p/img/Line.png?t=202603111105" class="sns_icon" alt="LINE">LINEでログイン</li></a>' +
+                '<a href="/auth/login/with=google" target="_top" title="Googleでログイン"><li id="view_user_login_google"><img src="https://img2.bakusai.com/p/img/Google.png?t=202603111105" class="sns_icon" alt="Google">Googleでログイン</li></a>' +
+                '<a href="/auth/login/with=twitter" target="_top" title="X(旧Twitter)でログイン"><li id="view_user_login_twitter"><img class="sp_menu_X_icon" src="https://img2.bakusai.com/p/img/sbm/X_logo_square_black.svg?t=202603111105">X(旧Twitter)でログイン</li></a>' +
+                '<a href="/entry/" target="_top"><li id="view_user_entry"><i class="fa fa-book"></i>会員限定機能</li></a>';
+    }
+
+		if ('') {
+				menu_html = menu_html +
+								'<li id="menu_title3" style="width: 295px;">公式アカウント</li>';
+		} else {
+				menu_html = menu_html +
+								'<li id="menu_title3">公式アカウント<span class="X_balloon">フォローしてチェック</span></li>';
+		}
+
+		menu_html = menu_html +
+                '<a href="https://x.com/bakusai_x" target="_blank" title="爆サイ.com【公式】ツイッター"><li id="view_user_official_twitter"><img class="sp_menu_X_icon" src="https://img2.bakusai.com/p/img/sbm/X_logo_square_black.svg?t=202603111105"><p class="Expand_in_separate_tab"><span class="x_label">爆サイ.com【公式】<br class="follower_count_empty_br">ツイッター</span><span class="x_follower_count_wapper"><span class="x_follower_count">59.4万 フォロワー</span><i class="fa fa-external-link" aria-hidden="true"></i></span></p></li></a>' +
+                '<a href="https://twitter.com/bakusai_com" target="_blank" title="爆サイ.com PLUS"><li id="view_user_official_twitter"><img class="sp_menu_X_icon" src="https://img2.bakusai.com/p/img/sbm/X_logo_square_black.svg?t=202603111105"><p class="Expand_in_separate_tab"><span class="x_label">爆サイ.com PLUS</span><span class="x_follower_count_wapper"><span class="x_follower_count">26.8万 フォロワー</span><i class="fa fa-external-link" aria-hidden="true"></i></span></p></li></a>' +
+                '<a href="https://x.com/bakusai_hodo" target="_blank" title="爆サイ.com【公式】報道"><li id="view_user_official_twitter"><img class="sp_menu_X_icon" src="https://img2.bakusai.com/p/img/sbm/X_logo_square_black.svg?t=202603111105"><p class="Expand_in_separate_tab"><span class="x_label">爆サイ.com【公式】報道</span><span class="x_follower_count_wapper"><span class="x_follower_count">4.5万 フォロワー</span><i class="fa fa-external-link" aria-hidden="true"></i></span></p></li></a>' +
+                '<a href="https://twitter.com/bakusai_info" target="_blank" title="爆サイ お知らせ・障害情報"><li id="view_user_maintenance_twitter"><img class="sp_menu_X_icon" src="https://img2.bakusai.com/p/img/sbm/X_logo_square_black.svg?t=202603111105"><p class="Expand_in_separate_tab">爆サイ お知らせ・障害情報<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>'+
+                '<a href="/linestamp/" title="LINEスタンプ発売中"><li id="view_user_linestamp"><img src="https://img2.bakusai.com/p/img/Line.png?t=202603111105" class="sns_icon">爆サイLINEスタンプ</li></a>'+
+                '<a href="https://store.line.me/stickershop/product/21403443/ja" title="爆サイ公式スタンプ【二ート】"><li class="line_stamp_store view_user_2_line_display"><img src="https://img2.bakusai.com/p/img/stamp/thumbnail/05_thumbnail.png?t=202603111105" class="stamp_thumbnail"><p class="Expand_in_separate_tab">公式スタンプ【二ート】<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>'+
+                '<a href="https://store.line.me/stickershop/product/21536986/ja" title="爆サイ公式スタンプ【全肯定】"><li class="line_stamp_store view_user_2_line_display"><img src="https://img2.bakusai.com/p/img/stamp/thumbnail/17_thumbnail.png?t=202603111105" class="stamp_thumbnail"><p class="Expand_in_separate_tab">公式スタンプ【全肯定】<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>'+
+                '<a href="https://store.line.me/stickershop/product/21538725/ja" title="爆サイ公式スタンプ【天使と悪魔】"><li class="line_stamp_store view_user_2_line_display"><img src="https://img2.bakusai.com/p/img/stamp/thumbnail/08_thumbnail.png?t=202603111105" class="stamp_thumbnail"><p class="Expand_in_separate_tab">公式スタンプ【天使と悪魔】<i class="fa fa-external-link" aria-hidden="true"></i></p><br><div class="navi_twi_balloon" style="text-align: center;"><span class="navi_twi_text">好評発売中！</span></div></li></a>' ;
+
+    if ('') {
+        menu_html = menu_html +
+                '<li id="menu_title2" style="width: 295px;">メニュー</li>';
+    } else {
+        menu_html = menu_html +
+                '<li id="menu_title2">メニュー</li>';
+    }
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">コンテンツ</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">コンテンツ</li>';
+    }
+
+        menu_html = menu_html +
+        '<a href="/thr_tl/acode=5818/" class="sp_landscape_area_url" target="_top" title="東京の美しい風景掲示板"><li id="view_user_landscape_bulletin_board" class="view_user_2_line_display"><i class="fa fa-camera" aria-hidden="true"></i><span class="menu_text_package"><span class="sp_menu_landscape_area_name"></span>美しい風景掲示板</span></li></a>' +
+        '<a href="/thr_tl/acode=4/ctgid=156/bid=5817/" target="_top" title="爆サイ.com カテゴリーダーの独り言"><li id="view_user_new_columns" class="lineBreak"><i class="fa fa-pencil" aria-hidden="true"></i><div>爆サイ.com カテゴリーダーの独り言</div></li></a>' +
+        '<a href="/fortune_telling_list/" target="_top" title="爆サイ カメレオン占い"><li id="view_user_fortune_telling_list"><i class="fa fa-star"></i>爆サイ カメレオン占い</li></a>' +
+        '<a href="https://bakusai.com/twitter/how-to-remove-shadowban-from-twitter.html" target="_blank" title="Xのシャドウバン解除方法"><li id="view_user_how-to-remove-shadowban" class="view_user_2_line_display"><i class="fa fa-lightbulb-o" aria-hidden="true"></i><p class="Expand_in_separate_tab">Xのシャドウバン解除方法<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>' +
+        '<a href="/billion/" target="_top" title="10億投稿突破記念ページ"><li id="view_user_billion"><i class="fa fa-trophy" aria-hidden="true"></i>10億投稿突破記念ページ</li></a>' +
+        '<a href="/niconico_support/" target="_top" title="ニコニコ復旧応援ページ"><li id="view_user_niconico"><i class="fa fa-wrench" aria-hidden="true"></i>ニコニコ復旧応援ページ</li></a>' +
+        '<a href="/yamibaito/" target="_top" title="闇バイトからの転落"><li id="view_user_yamibaito"><i class="fa fa-user-secret" aria-hidden="true"></i>闇バイトからの転落</li></a>'  +
+        '<a href="https://bakusai.com/del/" target="_brank" title="爆サイのスレッド・レスを削除する方法"><li id="view_user_trb_info" class="lineBreak"><i class="fa fa-info"></i><p class="Expand_in_separate_tab">爆サイのスレッド・レスを<br>削除する方法<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>'  +
+        '<a href="https://bakusai.com/inq_pro/" target="_brank" title="爆サイの投稿者を特定する方法"><li id="view_user_trb_info" class="lineBreak"><i class="fa fa-info"></i><p class="Expand_in_separate_tab">爆サイの投稿者を<br>特定する方法<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">当サイトについて</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">当サイトについて</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="/beginner/" target="_top" title="爆サイ.comとは？"><li id="view_user_beginner"><i class="fa fa-question"></i>爆サイ.comとは？</li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<a href="/mobile/" target="_top" title="PC・スマホ・モバイル版について"><li id="view_user_mobile"><i class="fa fa-desktop"></i>PC・スマホ・モバイル版について</li></a>';
+    } else {
+        menu_html = menu_html +
+                '<a href="/pc/" target="_top" title="PC版について"><li id="view_user_mobile"><i class="fa fa-desktop"></i>PC版について</li></a>';
+    }
+
+		menu_html = menu_html +
+                '<a href="/guide/" target="_top" title="機能説明"><li id="view_user_guide"><i class="fa fa-book"></i>機能説明</li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">方針・規約について</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">方針・規約について</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="/rule/" target="_top" title="利用規約"><li id="view_user_rule"><i class="fa fa-shield"></i>利用規約</li></a>' +
+                '<a href="/safety/" target="_top" title="運用方針"><li id="view_user_safety"><i class="fa fa-file-text"></i>運用方針</li></a>' +
+                '<a href="/delete/" target="_top" title="削除依頼について"><li id="view_user_del"><i class="fa fa-trash"></i>削除依頼について</li></a>' +
+                '<a href="https://bakusai.com/corp/" target="_blank" title="情報流通プラットフォーム対処法"><li id="view_user_platform_info" class="lineBreak"><i class="fa fa-newspaper-o" aria-hidden="true"></i><p class="Expand_in_separate_tab">情報流通プラットフォーム<br>対処法<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">引用について</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">引用について</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="/link/" target="_top" title="引用・リンクについて"><li id="view_user_link"><i class="fa fa-link"></i>引用・リンクについて</li></a>' +
+                '<a href="/matome/" target="_top" title="まとめ機能 マニュアル"><li id="view_user_matome"><i class="fa fa-file"></i>まとめ機能 マニュアル</li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">サポート</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">サポート</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="/news_info/" target="_top" title="お知らせ"><li id="view_user_trb_info"><i class="fa fa-info"></i>お知らせ</li></a>' +
+                '<a href="https://maintenance.bakusai.com/" target="_brank" title="障害・メンテナンス情報"><li id="view_user_trb_info" class="view_user_2_line_display"><i class="fa fa-info"></i><p class="Expand_in_separate_tab">障害・メンテナンス情報<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>' +
+                '<a href="/contact/" target="_top" title="お問い合わせ"><li id="view_user_corp"><i class="fa fa-envelope"></i>お問い合わせ</li></a>' +
+                '<a href="/q_a/" target="_top" title="よくある質問"><li id="view_user_q_a"><i class="fa fa-question"></i>よくある質問</li></a>';
+
+    if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">プレスリリース</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">プレスリリース</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="https://bakusai.com/ai/" target="_top" title="生成AI企業パートナー募集"><li id="view_user_ai_recruitment" class="view_user_2_line_display"><i class="fa fa-handshake-o" aria-hidden="true"></i><p class="Expand_in_separate_tab">生成AI企業パートナー募集<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>' +
+                '<a href="https://bakusai.com/b_no1/" target="_top" title="日本最大級から日本最大へ"><li id="view_user_No1" class="view_user_2_line_display"><i class="fa fa-line-chart" aria-hidden="true"></i><p class="Expand_in_separate_tab">日本最大級から日本最大へ<i class="fa fa-external-link" aria-hidden="true"></i></p></li></a>'+
+                '<a href="/press/20251104/" target="_top" title="筑波大学と社会研究開始"><li id="view_user_Pr_tukuba" class="lineBreak"><i class="fa fa-bullhorn" aria-hidden="true"></i><p class="Expand_in_separate_tab">筑波大学と社会研究開始<span class="menu_new_column_mark" style="display: inline_block;">NEW</span></p></li></a>';
+
+		if ('') {
+        menu_html = menu_html +
+                '<li class="menu_subtitle" style="width: 295px;">その他</li>';
+    } else {
+        menu_html = menu_html +
+                '<li class="menu_subtitle">その他</li>';
+    }
+
+    menu_html = menu_html +
+                '<a href="/advertise/" target="_top" title="広告掲載について"><li id="view_user_advertise"><i class="fa fa-adjust"></i>広告掲載について</li></a>' +
+                '<a href="/archive/cd=media/" target="_top" title="メディア協力・掲載"><li id="view_user_media"><i class="fa fa-newspaper-o" aria-hidden="true"></i>メディア協力・掲載</li></a>' +
+                '<a href="/collabo/" target="_top" title="イベント・コラボ事例"><li id="view_user_collabo"><i class="fa fa-flag"></i>イベント・コラボ事例</li></a>' +
+                '<a href="/cam_annoucement/" target="_top" title="当選者発表"><li id="view_user_cam_annoucement"><i class="fa fa-bullhorn"></i>キャンペーン当選者発表</li></a>' +
+            '</ul>' +
+        '</nav>' +
+
+        '<!-- ボタン部分 -->' +
+                        '<div class="menu_navi_btn" id="nav_btn">' +
+            '<span class="hamburger_line hamburger_line1"></span>' +
+            '<span class="hamburger_line hamburger_line2"></span>' +
+            '<span class="hamburger_line hamburger_line3"></span>' +
+            '<div class="unread_notification_outer first"><div class="unread_notification_count">?</div></div>' +
+            '<span class="hamburger_line_title ">MENU</span>' +
+        '</div>' +
+        '<div class="nav_bg" id="nav_bg"></div>' +
+        '<!-- /ボタン部分 -->' +
+    '</div>';
+
+    $('body').prepend(menu_html);
+});
+$(function() {
+    function toggleNav() {
+        var body = document.body;
+        var hamburger = document.getElementById('nav_btn');
+        var blackBg = document.getElementById('nav_bg');
+
+        if (hamburger) {
+            hamburger.addEventListener('click', function() {
+                body.classList.toggle('nav_open');
+            });
+        }
+
+        if (blackBg) {
+            blackBg.addEventListener('click', function() {
+                body.classList.remove('nav_open');
+            });
+        }
+    }
+    toggleNav();
+});
+</script>
+<script>
+    // 美しい風景掲示板のURLを現在のエリアに合わせ変更
+    // ロード
+    window.addEventListener('load', function () {
+    // フレーム親要素からURLのパス名を取得
+    var pathName = top.location.pathname;
+    if (!pathName.endsWith('/')) {
+        pathName += '/';
+    }
+
+    // 条件に応じてhref属性を変更
+    var sp_linkElement = document.querySelector('.sp_landscape_area_url');// .sp_landscape_area_urlクラスのaタグを取得
+    var sp_spanElement = document.querySelector('.sp_menu_landscape_area_name');// .sp_menu_landscape_area_nameクラスのspanを取得
+    var bradditionElement = sp_spanElement; // 同じクラスなので共通
+
+    // 要素がなければ何もしない（安全ガード）
+    if (!sp_linkElement || !sp_spanElement) return;
+
+    function setLandscape(link, title, text, addBr = false) {
+        sp_linkElement.href = link;
+        sp_linkElement.title = title;
+        sp_spanElement.textContent = text;
+        if (addBr && bradditionElement) {
+            bradditionElement.insertAdjacentHTML('afterend', '<br>');
+        }
+    }
+
+
+    // 条件に応じてhref属性を変更
+        if (pathName.includes('/acode=1/')) {
+        setLandscape('/thr_tl/acode=1/ctgid=104/bid=5830/', '北海道の美しい風景掲示板', '北海道の');
+    } else if (pathName.includes('/acode=2/')) {
+        setLandscape('/thr_tl/acode=2/ctgid=104/bid=5837/', '南東北の美しい風景掲示板', '南東北の');
+    } else if (pathName.includes('/acode=3/')) {
+        setLandscape('/thr_tl/acode=3/ctgid=104/bid=5818/', '東京の美しい風景掲示板', '東京の');
+    } else if (pathName.includes('/acode=4/')) {
+        setLandscape('/thr_tl/acode=4/ctgid=104/bid=5833/', '甲信越の美しい風景掲示板', '甲信越の');
+    } else if (pathName.includes('/acode=5/')) {
+        setLandscape('/thr_tl/acode=5/ctgid=104/bid=5831/', '東海の美しい風景掲示板', '東海の');
+    } else if (pathName.includes('/acode=6/')) {
+        setLandscape('/thr_tl/acode=6/ctgid=104/bid=5840/', '北陸の美しい風景掲示板', '北陸の');
+    } else if (pathName.includes('/acode=7/')) {
+        setLandscape('/thr_tl/acode=7/ctgid=104/bid=5819/', '大阪の美しい風景掲示板', '大阪の');
+    } else if (pathName.includes('/acode=8/')) {
+        setLandscape('/thr_tl/acode=8/ctgid=104/bid=5834/', '山陽の美しい風景掲示板', '山陽の');
+    } else if (pathName.includes('/acode=9/')) {
+        setLandscape('/thr_tl/acode=9/ctgid=104/bid=5839/', '四国の美しい風景掲示板', '四国の');
+    } else if (pathName.includes('/acode=10/')) {
+        setLandscape('/thr_tl/acode=10/ctgid=104/bid=5827/', '北部九州の美しい風景掲示板', '北部九州の');
+    } else if (pathName.includes('/acode=11/')) {
+        setLandscape('/thr_tl/acode=11/ctgid=104/bid=5829/', '沖縄の美しい風景掲示板', '沖縄の');
+    } else if (pathName.includes('/acode=12/')) {
+        setLandscape('/thr_tl/acode=12/ctgid=104/bid=5838/', '山陰の美しい風景掲示板', '山陰の');
+    } else if (pathName.includes('/acode=14/')) {
+        setLandscape('/thr_tl/acode=14/ctgid=104/bid=5835/', '北東北の美しい風景掲示板', '北東北の');
+    } else if (pathName.includes('/acode=15/')) {
+        setLandscape('/thr_tl/acode=15/ctgid=104/bid=5826/', '北関東の美しい風景掲示板', '北関東の');
+    } else if (pathName.includes('/acode=16/')) {
+        setLandscape('/thr_tl/acode=16/ctgid=104/bid=5836/', '南部九州の美しい風景掲示板', '南部九州の');
+    } else if (pathName.includes('/acode=17/')) {
+        setLandscape('/thr_tl/acode=17/ctgid=104/bid=6019/', '南関東の美しい風景掲示板', '南関東の');
+    } else if (pathName.includes('/acode=18/')) {
+        setLandscape('/thr_tl/acode=18/ctgid=104/bid=6025/', '関西の美しい風景掲示板', '関西の');
+    } else if (pathName.includes('/ctrid=1/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=1/ctgid=104/bid=5841/', '中国の美しい風景掲示板', '中国の');
+    } else if (pathName.includes('/ctrid=10/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=10/ctgid=104/bid=5893/', '台湾の美しい風景掲示板', '台湾の');
+    } else if (pathName.includes('/ctrid=2/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=2/ctgid=104/bid=5842/', 'タイの美しい風景掲示板', 'タイの');
+    } else if (pathName.includes('/ctrid=3/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=3/ctgid=104/bid=5844/', '韓国の美しい風景掲示板', '韓国の');
+    } else if (pathName.includes('/ctrid=4/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=4/ctgid=104/bid=5843/', 'フィリピンの美しい風景掲示板', 'フィリピンの', true);
+    } else if (pathName.includes('/ctrid=5/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=5/ctgid=104/bid=5848/', 'ベトナムの美しい風景掲示板', 'ベトナムの');
+    } else if (pathName.includes('/ctrid=6/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=6/ctgid=104/bid=5845/', 'アメリカの美しい風景掲示板', 'アメリカの');
+    } else if (pathName.includes('/ctrid=11/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=11/ctgid=104/bid=5918/', 'カナダの美しい風景掲示板', 'カナダの');
+    } else if (pathName.includes('/ctrid=7/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=7/ctgid=104/bid=5846/', 'インドネシアの美しい風景掲示板', 'インドネシアの', true);
+    } else if (pathName.includes('/ctrid=8/') || pathName.includes('/ctrid=9/')) {
+        setLandscape('/thr_tl/acode=13/ctrid=8/ctgid=104/bid=5847/', 'ロシアとウクライナの美しい風景掲示板', 'ロシアとウクライナの');
+    } else {
+        setLandscape('/thr_tl/acode=3/ctgid=104/bid=5818/', '東京の美しい風景掲示板', '東京の');
+    }
+});
+
+  </script>
+<style>
+    .unread_notification_outer {
+        display: none;
+        position: absolute;
+    }
+    .second .unread_notification_count ,
+    .first .unread_notification_count {
+        display: none;
+    }
+    .first.unread_notification_outer:after {
+        content: "\f111";
+        font-family: 'FontAwesome';
+        font-weight: bold;
+        font-size: 10px;
+        display: block;
+        color: red;
+        z-index: 25;
+        position: absolute;
+        left: 17px;
+        top: 20px;
+    }
+    .second.unread_notification_outer:after {
+        content: "\f111";
+        font-family: 'FontAwesome';
+        font-weight: bold;
+        font-size: 10px;
+        display: block;
+        color: red;
+        z-index: 25;
+        position: relative;
+        left: 127px;
+        top: -43px;
+    }
+</style>
+
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<meta http-equiv="cache-control" content="no-cache">
+<meta name="robots" content="nofollow,noarchive">
+<meta name="googlebot" content="nofollow,noarchive">
+<link rel="canonical" href="https://bakusai.com">
+<link rel="stylesheet" href="/css/bakusai/sp/common.css?t=202603111105">
+<link rel="stylesheet" href="/font/font-awesome/css/font-awesome.css?t=202603111105">
+<link rel="shortcut icon" type="image/png" href="https://img2.bakusai.com/p/img/favicon.ico?t=202603111105" />
+<link rel="shortcut icon" type="image/svg+xml" href="https://img2.bakusai.com/p/img/favicon/favicon.svg?t=202603111105" />
+<link rel="apple-touch-icon" href="https://img2.bakusai.com/p/img/favicon/favicon.png?t=202603111105">
+</head>
+
+<body>
+<header>
+	<h1><div>エラー</div></h1>
+	<p class="headbtn"><a href="#" onClick="history.back(); return false;">戻る</a></p>
+</header>
+
+<div id="contents">
+<div class="error_title">
+	<img src="https://img2.bakusai.com/p/img/error/ika_error_illust.svg" alt="イカイラスト">
+	<h1 class="accessError_h1" style="border-bottom: none; background: none; box-shadow:none;">ika error!</h1>
+</div>
+
+<div class="errorImg_wrap">
+	<div class="errorImg">
+		<img src="https://img2.bakusai.com/p/img/error/error_illust_v2.svg" alt="エラーイラスト">
+		<a onclick="window.location.reload(true);">
+			<div class="refresh_balloon">
+				<div class="refresh_icon"><img src="https://img2.bakusai.com/p/img/error/reload-icon.svg" alt="アイコン"></div>
+				<div class="refresh_click">click</div>
+			</div>
+		</a>
+	</div>
+	
+	<div class="backimg medium">
+		<br class="sp10">
+		<h3 class="accessError_h3">
+																																										
+		
+						</h3>
+		<br class="sp5">
+		<h3 class="accessError_h3">お手数ですが再度<a href="/" title="TOPページ">TOPページ</a>よりアクセスして下さい。</h3>
+		<h3 class="accessError_h3">前のページへは[戻るボタン]で戻って下さい。</h3>
+	</div>
+
+	</div>
+
+</div>
+<!-- デバイスセレクトモーダル -->
+<div class="device-mode-modal-wrapper">
+  <div id="deviceModeSelectModal" class="device-mode-modal" style="display: none;">
+    <div class="device-mode-modal-content">
+        <span class="modal-batsu-button"></span>
+        <p>この端末ではマルチデバイス版と<br>PC版の表示が選べます。</p>
+        <div class="device-mode-option">
+            <button id="deviceModeBtnPC" class="device-mode-btn">PC版で見る</button>
+        </div>
+        <div class="device-mode-option">
+            <button id="deviceModeBtnMulti" class="device-mode-btn">マルチデバイス版で見る</button>
+        </div>
+        <div class="device-mode-image">
+            <img src="https://img2.bakusai.com/p/img/modal/tb_choice_character.png" alt="爆サイ.com−日本最大のローカルクチコミ掲示板" itemprop="image">
+        </div>
+        <div class="device-mode-label">
+            <label>
+                <input type="checkbox" id="deviceModeSavePreference"> 次回からこの表示にする
+            </label>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/js/device_mode_select.js?t=202603111105"></script>
+</div>
+<div class="device-mode-modal-overlay" style="display: none;"></div>
+
+<div id="footer">
+	<div class="elevator">
+    <a href="#" title="ページトップへ戻る">
+			<i class="fa fa-angle-up" aria-hidden="true"></i>
+		</a>
+	</div>
+	<ul>
+		<li><a href="/"><span class="footer-uni-emoji">©</span><span>爆サイ.com</span></a></li>
+	</ul>
+</div>
+<script src="/js/tippy/tippy.all.min.js"></script>
+<script src="/js/tippy/tippy.cstm.js" charset="utf-8"></script>
+
+<script>
+    var page_url = location.pathname;
+    var jquery_var = '3.3.1';
+    if (page_url.match('^(?=/ctgtop).*$|^(?=/sch_all).*$')) {
+        jquery_var = '2.1.4';
+    }
+
+    document.write('<script src="//ajax.googleapis.com/ajax/libs/jquery/'+ jquery_var +'/jquery.min.js"><\/script>');
+    window.jQuery || document.write('<script src="/js/jquery-'+ jquery_var +'.min.js"><\/script>');
+</script>
+<script src="/js/jquery.common.sp.js?t=202603111105"></script>
+<script>
+// 《計測タグ…可能全ページ設置（一般）》
+	(function(w,d,j){var t='microAdUniverseTracker';w[t]=w[t]||{};w[t].track=w[t].track||function(){
+	(w[t].queue=w[t].queue||[]).push(arguments)};var s=d.createElement('script');s.async=true;s.src=j;
+	var fs=d.getElementsByTagName('script')[0];fs.parentNode.insertBefore(s,fs)})
+	(window,document,'https://cdn.microad.jp/js/track.js');
+	microAdUniverseTracker.track({
+		"service_id": 3880
+	});
+</script>
+</body>
+</html>
