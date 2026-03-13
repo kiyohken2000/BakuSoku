@@ -63,10 +63,11 @@ export default function ThreadDetail() {
   const [postName, setPostName] = useState('')
   const [isPosting, setIsPosting] = useState(false)
 
-  const [anchorRrid, setAnchorRrid] = useState(null)
-  const [showAnchorPopup, setShowAnchorPopup] = useState(false)
-  const [anchorResponse, setAnchorResponse] = useState(null) // getResShow ??????
-  const [anchorLoading, setAnchorLoading] = useState(false)
+  // anchorStack: [{rrid, response}] — 末尾が現在表示中のアンカー
+  const [anchorStack, setAnchorStack] = useState([])
+  const [anchorLoadingRrid, setAnchorLoadingRrid] = useState(null)
+  const showAnchorPopup = anchorStack.length > 0
+  const currentAnchor = anchorStack.length > 0 ? anchorStack[anchorStack.length - 1] : null
 
   const [showTitleModal, setShowTitleModal] = useState(false)
   const [showEulaModal, setShowEulaModal] = useState(false)
@@ -384,25 +385,30 @@ export default function ThreadDetail() {
 
   const onAnchorPress = async (refRrid) => {
     Haptics.selectionAsync()
-    setAnchorRrid(refRrid)
-    setAnchorResponse(null)
-    setShowAnchorPopup(true)
-
-    // ???????????????? responses ????????? /thr_res_show/ ???
     const cached = responses.find((r) => r.rrid === refRrid)
     if (cached) {
-      setAnchorResponse(cached)
+      setAnchorStack((prev) => [...prev, { rrid: refRrid, response: cached }])
       return
     }
-
-    setAnchorLoading(true)
+    setAnchorStack((prev) => [...prev, { rrid: refRrid, response: null }])
+    setAnchorLoadingRrid(refRrid)
     try {
       const res = await getResShow(acode, ctgid, bid, tid, refRrid)
-      setAnchorResponse(res || null)
+      setAnchorStack((prev) => {
+        const next = [...prev]
+        const idx = next.findLastIndex((item) => item.rrid === refRrid && item.response === null)
+        if (idx >= 0) next[idx] = { rrid: refRrid, response: res || null }
+        return next
+      })
     } catch {
-      setAnchorResponse(null)
+      setAnchorStack((prev) => {
+        const next = [...prev]
+        const idx = next.findLastIndex((item) => item.rrid === refRrid && item.response === null)
+        if (idx >= 0) next[idx] = { rrid: refRrid, response: null }
+        return next
+      })
     } finally {
-      setAnchorLoading(false)
+      setAnchorLoadingRrid(null)
     }
   }
 
@@ -1081,33 +1087,55 @@ export default function ThreadDetail() {
         <TouchableOpacity
           style={styles.anchorOverlay}
           activeOpacity={1}
-          onPress={() => setShowAnchorPopup(false)}
+          onPress={() => setAnchorStack([])}
         >
-          <View style={[styles.anchorPopup, { backgroundColor: theme.surface, shadowColor: theme.text }]}>
-            {anchorLoading ? (
-              <ActivityIndicator size="small" color={theme.accent} />
-            ) : anchorResponse ? (
+          <View
+            style={[styles.anchorPopup, { backgroundColor: theme.surface, shadowColor: theme.text }]}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            {/* スタックナビゲーション */}
+            <View style={[styles.anchorNavBar, { borderBottomColor: theme.border }]}>
+              {anchorStack.length > 1 ? (
+                <TouchableOpacity
+                  onPress={() => setAnchorStack((prev) => prev.slice(0, -1))}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={styles.anchorBackBtn}
+                >
+                  <FontIcon name="chevron-left" size={13} color={theme.accent} />
+                  <Text style={[styles.anchorBackText, { color: theme.accent }]}>戻る</Text>
+                </TouchableOpacity>
+              ) : <View style={styles.anchorBackBtn} />}
+              <TouchableOpacity
+                onPress={() => setAnchorStack([])}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <FontIcon name="times" size={14} color={theme.subText} />
+              </TouchableOpacity>
+            </View>
+
+            {anchorLoadingRrid === currentAnchor?.rrid && currentAnchor?.response === null ? (
+              <ActivityIndicator size="small" color={theme.accent} style={{ padding: 16 }} />
+            ) : currentAnchor?.response ? (
               <>
                 <View style={[styles.anchorHeader, { borderBottomColor: theme.border }]}>
                   <Text style={[styles.anchorRrid, { color: theme.accent }]}>
-                    #{anchorResponse.rrid}
+                    #{currentAnchor.response.rrid}
                   </Text>
-                  <Text style={[styles.anchorName, { color: theme.subText }]}>{anchorResponse.name}</Text>
-                  <Text style={[styles.anchorDate, { color: theme.subText }]}>{anchorResponse.date}</Text>
+                  <Text style={[styles.anchorName, { color: theme.subText }]}>{currentAnchor.response.name}</Text>
+                  <Text style={[styles.anchorDate, { color: theme.subText }]}>{currentAnchor.response.date}</Text>
                 </View>
                 <ScrollView
                   style={styles.anchorBodyScroll}
                   showsVerticalScrollIndicator
                   onStartShouldSetResponder={() => true}
                 >
-                  <Text style={[styles.anchorBody, { color: theme.text }]} selectable>
-                    {anchorResponse.body}
-                  </Text>
+                  {renderBodyWithAnchors(currentAnchor.response.body)}
                 </ScrollView>
               </>
             ) : (
-              <Text style={{ color: theme.subText, fontSize: 13 }}>
-                {`>>${anchorRrid} は見つかりません`}
+              <Text style={{ color: theme.subText, fontSize: 13, padding: 12 }}>
+                {`>>${currentAnchor?.rrid} は見つかりません`}
               </Text>
             )}
           </View>
@@ -1390,23 +1418,40 @@ const styles = StyleSheet.create({
   },
   anchorPopup: {
     borderRadius: 12,
-    padding: 14,
+    overflow: 'hidden',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
   },
+  anchorNavBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  anchorBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 50,
+  },
+  anchorBackText: { fontSize: 13 },
   anchorHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    paddingHorizontal: 14,
+    paddingTop: 10,
     paddingBottom: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   anchorRrid: { fontSize: 13, fontWeight: '700', marginRight: 8 },
   anchorName: { fontSize: 12, marginRight: 8 },
   anchorDate: { fontSize: 11, marginLeft: 'auto' },
-  anchorBodyScroll: { maxHeight: 260 },
+  anchorBodyScroll: { maxHeight: 260, paddingHorizontal: 14, paddingVertical: 10 },
   anchorBody: { fontSize: 13, lineHeight: 18 },
   eulaOverlay: {
     flex: 1,

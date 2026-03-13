@@ -33,6 +33,7 @@ export default function Search() {
   const [searchedQuery, setSearchedQuery] = useState('')
   const [nextPage, setNextPage] = useState(null)
   const currentQueryRef = useRef('')
+  const [filterQuery, setFilterQuery] = useState('')
 
   const onSearch = async () => {
     if (!query.trim()) return
@@ -43,6 +44,7 @@ export default function Search() {
     setSearchedQuery(query.trim())
     currentQueryRef.current = query.trim()
     setNextPage(null)
+    setFilterQuery('')
     try {
       const { results: res, nextPage: np } = await searchApi(acode, query.trim(), 1)
       setResults(res)
@@ -78,6 +80,7 @@ export default function Search() {
     setSearchedQuery('')
     setError(null)
     setNextPage(null)
+    setFilterQuery('')
     inputRef.current?.focus()
   }
 
@@ -151,8 +154,29 @@ export default function Search() {
           <Text style={{ color: theme.subText }}>{error}</Text>
         </View>
       ) : (
+        <>
+        {results.length > 0 && (
+          <View style={[styles.filterBar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <FontIcon name="filter" size={13} color={theme.subText} style={{ marginRight: 6 }} />
+            <TextInput
+              style={[styles.filterInput, { color: theme.text }]}
+              placeholder="結果をフィルター..."
+              placeholderTextColor={theme.subText}
+              value={filterQuery}
+              onChangeText={setFilterQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
+            />
+            {filterQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setFilterQuery('')} hitSlop={8}>
+                <FontIcon name="times-circle" size={14} color={theme.subText} />
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         <FlatList
-          data={results}
+          data={results.filter((r) => !filterQuery.trim() || r.title.toLowerCase().includes(filterQuery.trim().toLowerCase()))}
           keyExtractor={(item, i) => item.tid || `${i}-${item.href}`}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -197,6 +221,7 @@ export default function Search() {
             ) : null
           }
         />
+        </>
       )}
     </SafeAreaView>
   )
@@ -254,4 +279,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   metaText: { fontSize: 11 },
+  filterBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  filterInput: {
+    flex: 1,
+    fontSize: 13,
+    paddingVertical: 2,
+  },
 })
