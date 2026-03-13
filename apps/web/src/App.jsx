@@ -114,7 +114,9 @@ function Landing() {
         </p>
         <div className="hero-badges">
           <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge" />
-          <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge" />
+          <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
+            <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
+          </a>
         </div>
         <div className="pill-features">
           <span className="pill">
@@ -169,7 +171,9 @@ function Landing() {
         <p>爆サイ.com をストレスなく楽しもう。</p>
         <div className="hero-badges">
           <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge" />
-          <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge" />
+          <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
+            <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
+          </a>
         </div>
       </section>
 

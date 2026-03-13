@@ -108,6 +108,16 @@
   opacity: 0.5;
 }
 
+.store-badge.active {
+  opacity: 1;
+  filter: none;
+  cursor: pointer;
+}
+
+.store-badge.active:hover {
+  opacity: 0.85;
+}
+
 /* ---------- Pill features (compact) ---------- */
 .pill-features {
   display: flex;
