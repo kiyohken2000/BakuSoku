@@ -404,6 +404,61 @@ export function parseThread(html) {
     return true
   })
 
+  // 画像・ニュース系ボード: <li id="res0_whole"> に記事本文がある場合は先頭に挿入
+  // (通常ボードの res0_block は空なのでスキップされており、pageTitle フォールバックは
+  //  responses.length === 0 のときだけ使われる。ここでは実際の記事本文を使う)
+  const res0WholeM = html.match(/<li[^>]*id="res0_whole"[^>]*>([\s\S]*?)(?=<li\s|<\/ul>)/)
+  if (res0WholeM) {
+    const res0Block = res0WholeM[1]
+
+    // 日時
+    const dateM = res0Block.match(/itemprop="datePublished"[^>]*>([\s\S]*?)<\/span>/)
+    const res0date = dateM ? dateM[1].trim() : ''
+
+    // スレタイ (bg_thrtitle > p)
+    const titleM = res0Block.match(/class="bg_thrtitle[^"]*"[\s\S]*?<p>([\s\S]*?)<\/p>/)
+    const res0title = titleM
+      ? decodeEntities(titleM[1].replace(/<[^>]*>/g, '').trim())
+      : ''
+
+    // 記事本文: div_box (showmore_list) 内の <p> テキスト
+    let articleText = ''
+    const divBoxM = res0Block.match(/<div[^>]*id="div_box"[^>]*>([\s\S]*?)(?:<\/div>\s*<!--\s*\/showmore_list|<\/section>)/)
+    if (divBoxM) {
+      const paras = [...divBoxM[1].matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
+      articleText = paras
+        .map((m) => decodeEntities(m[1].replace(/<[^>]*>/g, '').trim()))
+        .filter((t) => t.length > 0)
+        .join('\n')
+    }
+
+    // 配信元情報: 【日時】【提供】
+    const sourceLines = []
+    const jijiM = res0Block.match(/【日時】([^\n<]{1,80})/)
+    if (jijiM) sourceLines.push('\u3010\u65e5\u6642\u3011' + jijiM[1].trim())
+    const provM = res0Block.match(/【提供】([\s\S]*?)(?:<span|<\/div>|\n)/)
+    if (provM) {
+      const provText = provM[1].replace(/<[^>]*>/g, '').trim()
+      if (provText) sourceLines.push('\u3010\u63d0\u4f9b\u3011' + provText)
+    }
+
+    const bodyParts = []
+    if (res0title) bodyParts.push(res0title)
+    if (articleText) {
+      if (bodyParts.length > 0) bodyParts.push('')
+      bodyParts.push(articleText)
+    }
+    if (sourceLines.length > 0) {
+      bodyParts.push('')
+      bodyParts.push(...sourceLines)
+    }
+
+    const res0body = bodyParts.join('\n')
+    if (res0body && !uniqueResponses.some((r) => r.rrid === 0)) {
+      uniqueResponses.unshift({ rrid: 0, date: res0date, body: res0body, name: '' })
+    }
+  }
+
   const formFields = parseFormFields(html)
 
   const titleMatch = html.match(/<title>([^<]+)<\/title>/)
