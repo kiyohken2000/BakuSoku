@@ -35,6 +35,8 @@ export const SettingsContextProvider = ({ children }) => {
   const [readPositions, setReadPositionsState] = useState({})
   // スレごとの表示モード上書き { [tid]: boolean } — undefined の場合はグローバルデフォルトを使用
   const [threadReadModes, setThreadReadModesState] = useState({})
+  // 自分が投稿したレスの rrid 一覧 { [tid]: number[] }
+  const [myPosts, setMyPostsState] = useState({})
 
   useEffect(() => {
     ;(async () => {
@@ -50,6 +52,7 @@ export const SettingsContextProvider = ({ children }) => {
       setPostEulaAcceptedState(await load('@bakusai_post_eula', false))
       setReadPositionsState(await load('@bakusai_readpos', {}))
       setThreadReadModesState(await load('@bakusai_thread_read_modes', {}))
+      setMyPostsState(await load('@bakusai_my_posts', {}))
       setIsSettingsLoaded(true)
     })()
   }, [])
@@ -137,6 +140,15 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_post_eula', true)
   }
 
+  // 自分が投稿したレスの rrid を追加
+  const addMyPosts = (tid, rrids) => {
+    if (!rrids || rrids.length === 0) return
+    const prev = myPosts[String(tid)] || []
+    const next = { ...myPosts, [String(tid)]: [...new Set([...prev, ...rrids])] }
+    setMyPostsState(next)
+    save('@bakusai_my_posts', next)
+  }
+
   // スレごとの表示モード上書きを保存
   const setThreadReadMode = (tid, mode) => {
     const next = { ...threadReadModes, [String(tid)]: mode }
@@ -166,6 +178,7 @@ export const SettingsContextProvider = ({ children }) => {
     setPostEulaAcceptedState(false)
     setReadPositionsState({})
     setThreadReadModesState({})
+    setMyPostsState({})
   }
 
   // 成人・ギャンブルカテゴリ表示判定
@@ -206,6 +219,8 @@ export const SettingsContextProvider = ({ children }) => {
         saveReadPosition,
         threadReadModes,
         setThreadReadMode,
+        myPosts,
+        addMyPosts,
         resetAllSettings,
       }}
     >

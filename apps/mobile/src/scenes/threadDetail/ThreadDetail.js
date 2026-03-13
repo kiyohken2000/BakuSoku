@@ -34,7 +34,7 @@ export default function ThreadDetail() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, tid, title } = route.params
-  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, threadReadModes, setThreadReadMode, isSettingsLoaded } = useSettings()
+  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, threadReadModes, setThreadReadMode, myPosts, addMyPosts, isSettingsLoaded } = useSettings()
 
   // スレ固有の上書き設定があればそちらを優先、なければグローバルデフォルトを使用
   const effectiveReadFromStart = threadReadModes[String(tid)] !== undefined
@@ -506,11 +506,16 @@ export default function ThreadDetail() {
     if (!postBody.trim() || !formFields) return
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     setIsPosting(true)
+    // 投稿前の最大 rrid を記録しておく
+    const prevMaxRrid = responses.length > 0
+      ? Math.max(...responses.map((r) => r.rrid))
+      : 0
+    const postedBody = postBody.trim()
     try {
       const result = await postResponse(
         formFields._action,
         formFields,
-        postBody.trim(),
+        postedBody,
         postName.trim(),
       )
       if (result?.status === 'success') {
@@ -518,6 +523,14 @@ export default function ThreadDetail() {
         setPostName('')
         setShowPostModal(false)
         await loadThread(null, effectiveReadFromStart)
+        // リロード後、prevMaxRrid より大きくて投稿内容が一致するレスが自分のレス
+        setResponses((current) => {
+          const mine = current
+            .filter((r) => r.rrid > prevMaxRrid && r.body.trim() === postedBody)
+            .map((r) => r.rrid)
+          if (mine.length > 0) addMyPosts(tid, mine)
+          return current
+        })
       } else {
         Alert.alert('エラー', `投稿に失敗しました\nstatus: ${result?.status ?? 'undefined'}`)
       }
@@ -615,15 +628,31 @@ export default function ThreadDetail() {
     const rating = ratings[item.rrid] || { good: 0, bad: 0 }
     const isSearchMatch = searchMatches.includes(index)
     const isCurrentMatch = searchMatches.length > 0 && searchMatches[searchMatchIdx] === index
+    const myRrids = myPosts[String(tid)] || []
+    const isMyPost = myRrids.includes(item.rrid)
+    const isReplyToMe = !isMyPost && myRrids.some((r) => item.body.includes(`>>${r}`))
     return (
       <View
         style={[
           styles.responseItem,
-          { backgroundColor: isCurrentMatch ? theme.accent + '22' : isSearchMatch ? theme.accent + '11' : theme.surface, borderBottomColor: theme.border },
+          { borderBottomColor: theme.border },
+          isMyPost && styles.myPostItem,
+          isReplyToMe && styles.replyToMeItem,
+          isCurrentMatch
+            ? { backgroundColor: theme.accent + '22' }
+            : isSearchMatch
+              ? { backgroundColor: theme.accent + '11' }
+              : isMyPost
+                ? { backgroundColor: '#f9731611' }
+                : isReplyToMe
+                  ? { backgroundColor: '#3b82f611' }
+                  : { backgroundColor: theme.surface },
         ]}
       >
         <View style={styles.responseHeader}>
-          <Text style={[styles.rrid, { color: theme.accent }]}>#{item.rrid}</Text>
+          <Text style={[styles.rrid, { color: isMyPost ? theme.accent : theme.accent }]}>#{item.rrid}</Text>
+          {isMyPost && <Text style={styles.myPostBadge}>自分</Text>}
+          {isReplyToMe && <Text style={styles.replyToMeBadge}>返信</Text>}
           <Text style={[styles.name, { color: theme.subText }]}>{item.name}</Text>
           <Text style={[styles.date, { color: theme.subText }]}>{item.date}</Text>
         </View>
@@ -1261,6 +1290,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  myPostItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#f97316',
+    paddingLeft: 9,
+  },
+  replyToMeItem: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#3b82f6',
+    paddingLeft: 9,
+  },
+  myPostBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+    backgroundColor: '#f97316',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    marginRight: 6,
+    overflow: 'hidden',
+  },
+  replyToMeBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#fff',
+    backgroundColor: '#3b82f6',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    marginRight: 6,
+    overflow: 'hidden',
   },
   responseHeader: {
     flexDirection: 'row',
