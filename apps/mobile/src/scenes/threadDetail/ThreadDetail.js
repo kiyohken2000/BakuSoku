@@ -1052,18 +1052,20 @@ export default function ThreadDetail() {
             <Text style={[styles.eulaTitle, { color: theme.text }]}>書き込み規約</Text>
             <ScrollView style={styles.eulaScroll} showsVerticalScrollIndicator>
               <Text style={[styles.eulaBody, { color: theme.text }]}>
-                `爆サイ.com への書き込みに際し、以下の内容に同意の上でご利用ください。\n\n` +
-                `【禁止事項】\n` +
-                `他者への誤謗中傷・差別的発言・脅迫等の投稿は禁止します。\n` +
-                `個人情報（氏名・住所・電話番号等）の投稿は禁止です。\n` +
-                `法律に違反する内容の書き込みは禁止します。\n` +
-                `営利目的の広告・追尾行為は禁止します。\n` +
-                `著作権を侵害するコンテンツの投稿は禁止です。\n` +
-                `上記に違反した場合、投稿を削除する場合があります。\n\n` +
-                `【免責事項】\n` +
-                `投稿内容はユーザー本人の責任において行われます。\n` +
-                `爆サイ.com は投稿内容に関して一切の責任を負いません。\n\n` +
-                `上記の内容に同意の上、書き込みを行ってください。`}
+                {
+                  '\u7206\u30b5\u30a4.com \u3078\u306e\u66f8\u304d\u8fbc\u307f\u306b\u969b\u3057\u3001\u4ee5\u4e0b\u306e\u5185\u5bb9\u306b\u540c\u610f\u306e\u4e0a\u3067\u3054\u5229\u7528\u304f\u3060\u3055\u3044\u3002\n\n' +
+                  '\u3010\u7981\u6b62\u4e8b\u9805\u3011\n' +
+                  '\u4ed6\u8005\u3078\u306e\u8aa4\u8b17\u4e2d\u50b7\u30fb\u5dee\u5225\u7684\u767a\u8a00\u30fb\u8105\u8feb\u7b49\u306e\u6295\u7a3f\u306f\u7981\u6b62\u3057\u307e\u3059\u3002\n' +
+                  '\u500b\u4eba\u60c5\u5831\uff08\u6c0f\u540d\u30fb\u4f4f\u6240\u30fb\u96fb\u8a71\u756a\u53f7\u7b49\uff09\u306e\u6295\u7a3f\u306f\u7981\u6b62\u3067\u3059\u3002\n' +
+                  '\u6cd5\u5f8b\u306b\u9055\u53cd\u3059\u308b\u5185\u5bb9\u306e\u66f8\u304d\u8fbc\u307f\u306f\u7981\u6b62\u3057\u307e\u3059\u3002\n' +
+                  '\u55b6\u5229\u76ee\u7684\u306e\u5e83\u544a\u30fb\u8ffd\u5c3e\u884c\u70ba\u306f\u7981\u6b62\u3057\u307e\u3059\u3002\n' +
+                  '\u8457\u4f5c\u6a29\u3092\u4fb5\u5bb3\u3059\u308b\u30b3\u30f3\u30c6\u30f3\u30c4\u306e\u6295\u7a3f\u306f\u7981\u6b62\u3067\u3059\u3002\n' +
+                  '\u4e0a\u8a18\u306b\u9055\u53cd\u3057\u305f\u5834\u5408\u3001\u6295\u7a3f\u3092\u524a\u9664\u3059\u308b\u5834\u5408\u304c\u3042\u308a\u307e\u3059\u3002\n\n' +
+                  '\u3010\u514d\u8cac\u4e8b\u9805\u3011\n' +
+                  '\u6295\u7a3f\u5185\u5bb9\u306f\u30e6\u30fc\u30b6\u30fc\u672c\u4eba\u306e\u8cac\u4efb\u306b\u304a\u3044\u3066\u884c\u308f\u308c\u307e\u3059\u3002\n' +
+                  '\u7206\u30b5\u30a4.com \u306f\u6295\u7a3f\u5185\u5bb9\u306b\u95a2\u3057\u3066\u4e00\u5207\u306e\u8cac\u4efb\u3092\u8ca0\u3044\u307e\u305b\u3093\u3002\n\n' +
+                  '\u4e0a\u8a18\u306e\u5185\u5bb9\u306b\u540c\u610f\u306e\u4e0a\u3001\u66f8\u304d\u8fbc\u307f\u3092\u884c\u3063\u3066\u304f\u3060\u3055\u3044\u3002'
+                }
               </Text>
             </ScrollView>
             <View style={[styles.eulaBtns, { borderTopColor: theme.border }]}>
