@@ -30,6 +30,7 @@ import { createMqttClient } from 'lib/mqttClient'
 import { getCachedResponses, insertResponses, clearThreadCache } from 'lib/db'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
+import { showToast } from 'utils/showToast'
 
 export default function ThreadDetail() {
   const navigation = useNavigation()
@@ -483,6 +484,19 @@ export default function ThreadDetail() {
     await Clipboard.setStringAsync(text)
     setCopiedRrid(rrid)
     setTimeout(() => setCopiedRrid(null), 1500)
+  }
+
+  const copyTitle = async () => {
+    if (!pageTitle) return
+    await Clipboard.setStringAsync(pageTitle)
+    Haptics.selectionAsync()
+    showToast({ title: 'コピーしました', body: 'スレタイをコピー' })
+  }
+
+  const copyThreadUrl = async () => {
+    await Clipboard.setStringAsync(threadUrl)
+    Haptics.selectionAsync()
+    showToast({ title: 'コピーしました', body: 'スレのURLをコピー' })
   }
 
   const onReport = (item) => {
@@ -1211,6 +1225,24 @@ export default function ThreadDetail() {
                 {totalCount}{'\u30ec\u30b9'}
               </Text>
             )}
+            <View style={styles.titlePopupActions}>
+              <TouchableOpacity
+                style={[styles.titlePopupBtn, { borderColor: theme.border }]}
+                onPress={copyTitle}
+              >
+                <Text style={[styles.titlePopupBtnText, { color: theme.accent }]}>
+                  スレタイをコピー
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.titlePopupBtn, { borderColor: theme.border }]}
+                onPress={copyThreadUrl}
+              >
+                <Text style={[styles.titlePopupBtnText, { color: theme.accent }]}>
+                  スレのURLをコピー
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={[styles.titlePopupClose, { borderTopColor: theme.border }]}
               onPress={() => setShowTitleModal(false)}
@@ -1768,6 +1800,18 @@ const styles = StyleSheet.create({
   },
   titlePopupText: { fontSize: 15, lineHeight: 22 },
   titlePopupResCount: { fontSize: 13, marginTop: 8 },
+  titlePopupActions: {
+    marginTop: 12,
+    gap: 8,
+  },
+  titlePopupBtn: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  titlePopupBtnText: { fontSize: 13, fontWeight: '600' },
   titlePopupClose: {
     marginTop: 14,
     paddingTop: 12,

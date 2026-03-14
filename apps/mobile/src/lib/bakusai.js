@@ -132,6 +132,23 @@ function stripTags(html) {
   return decodeEntities(html.replace(/<[^>]*>/g, ''))
 }
 
+// HTMLタグがエンコードされて混入するケース（&lt;span ...&gt;）にも対応して除去する
+function stripTagsDeep(html) {
+  if (!html) return ''
+  let s = html
+  for (let i = 0; i < 2; i++) {
+    s = decodeEntities(s)
+    s = s.replace(/<[^>]*>/g, '')
+  }
+  return decodeEntities(s)
+}
+
+// タイトルの余分な改行/空白を潰して 1 行に整形する
+function normalizeTitle(html) {
+  if (!html) return ''
+  return stripTagsDeep(html).replace(/\s+/g, ' ').trim()
+}
+
 // bbstop/areatop リンク内HTMLから板名を抽出する
 // 構造A (inline): <div class="listNumb">🔫</div><div class="brdName ">板名</div>
 // 構造B (multiline): <div class="listNumb">\n  🛩️\n</div>\n<div class="brdName common_categories_text">板名</div>
@@ -169,7 +186,7 @@ function isPromotionLink(innerHtml) {
 // パーサー
 // ------------------------------------
 
-export function parseAreaTop(html) {
+export function parseAreaTop(html, regionName = '') {
   const categories = []
   const boards = []
 
@@ -178,12 +195,20 @@ export function parseAreaTop(html) {
   let m
   while ((m = catRegex.exec(html)) !== null) {
     const name = stripTags(m[3]).trim()
-    if (name && !categories.find((c) => c.ctgid === parseInt(m[2], 10))) {
+    if (!name) continue
+    const ctgid = parseInt(m[2], 10)
+    const existingIdx = categories.findIndex((c) => c.ctgid === ctgid)
+    const existing = existingIdx >= 0 ? categories[existingIdx] : null
+    if (!existing) {
       categories.push({
         acode: parseInt(m[1], 10),
-        ctgid: parseInt(m[2], 10),
+        ctgid,
         name,
       })
+    } else if (regionName && name.includes(regionName) && !existing.name.includes(regionName)) {
+      // 地域名を含むカテゴリ名が後から出た場合は名称更新 + 表示順も後ろに寄せる
+      categories.splice(existingIdx, 1)
+      categories.push({ ...existing, name })
     }
   }
 
@@ -249,7 +274,7 @@ export function parseThreadList(html) {
     const titleMatch =
       chunk.match(/class="thr_status_icon"[^>]*title="([^"]*)"/) ||
       chunk.match(/title="([^"]*)"[^>]*class="[^"]*thr_status_icon/)
-    const title = titleMatch ? decodeEntities(titleMatch[1]) : ''
+    const title = titleMatch ? normalizeTitle(titleMatch[1]) : ''
 
     let updatedAt = ''
     let resCount = 0
@@ -300,7 +325,7 @@ export function parseThreadList(html) {
         inner.match(/<div class="title">\s*([\s\S]*?)\s*<\/div>/) ||
         inner.match(/<div class="photograph_thr_title">\s*([\s\S]*?)\s*<\/div>/) ||
         inner.match(/class="photograph_image"[^>]*alt="([^"]+)"/)
-      const title = titleMatch ? decodeEntities(titleMatch[1].trim()) : ''
+      const title = titleMatch ? normalizeTitle(titleMatch[1]) : ''
 
       let updatedAt = ''
       const timeDivMatch = inner.match(/<div class="time">([\s\S]*?)<\/div>/)
@@ -445,9 +470,7 @@ export function parseThread(html) {
 
     // スレタイ (bg_thrtitle > p)
     const titleM = res0Block.match(/class="bg_thrtitle[^"]*"[\s\S]*?<p>([\s\S]*?)<\/p>/)
-    const res0title = titleM
-      ? decodeEntities(titleM[1].replace(/<[^>]*>/g, '').trim())
-      : ''
+    const res0title = titleM ? normalizeTitle(titleM[1]) : ''
 
     // 記事本文 (type A): div_box (showmore_list) 内の <p> テキスト (rss_news 系)
     let articleText = ''
@@ -546,7 +569,7 @@ export function parseThread(html) {
   const formFields = parseFormFields(html)
 
   const titleMatch = html.match(/<title>([^<]+)<\/title>/)
-  const rawTitle = titleMatch ? decodeEntities(titleMatch[1]) : ''
+  const rawTitle = titleMatch ? normalizeTitle(titleMatch[1]) : ''
   const pageTitle = rawTitle.split('｜')[0].trim()
 
   // タイトルから総レス数を抽出: "加茂農林高等学校 ③ - 新潟同窓会掲示板\n951レス｜..."
@@ -704,9 +727,10 @@ export async function getAreaTop(acode) {
     doGet(`/ctgtop_g/acode=${acode}/`).catch(() => ''),
   ])
 
-  const main = parseAreaTop(mainHtml)
-  const adult = parseAreaTop(adultHtml)
-  const gamble = parseAreaTop(gambleHtml)
+  const regionName = AREA_NAMES[acode] || ''
+  const main = parseAreaTop(mainHtml, regionName)
+  const adult = parseAreaTop(adultHtml, regionName)
+  const gamble = parseAreaTop(gambleHtml, regionName)
 
   // カテゴリを重複なくマージ（成人・ギャンブルは末尾に追加）
   const allCategories = [...main.categories]

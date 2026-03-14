@@ -1,0 +1,10 @@
+RAW:
+<span class="boardName world_news">
+                <span class="world_news_tag "><img class="emoji_flag " src="https://img2.bakusai.com/p/img/clock/flag_of_USA.gif"/>アメリカ</span>
+              </span>
+                            CIAは75年前から「がんの特効薬」を知っていた!? 機密解除文書で発覚した“抗寄生虫薬”と医療利権の闇
+
+STRIPPED:
+アメリカ
+              
+                            CIAは75年前から「がんの特効薬」を知っていた!? 機密解除文書で発覚した“抗寄生虫薬”と医療利権の闇

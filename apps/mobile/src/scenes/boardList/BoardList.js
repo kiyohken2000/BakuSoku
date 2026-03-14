@@ -36,12 +36,14 @@ const BoardItem = React.memo(({ item, isFav, onPress, theme }) => (
   </TouchableOpacity>
 ))
 
-const SectionHeader = React.memo(({ section, theme }) => (
-  <View
+const SectionHeader = React.memo(({ section, theme, collapsed, onToggle }) => (
+  <TouchableOpacity
     style={[
       styles.sectionHeader,
       { backgroundColor: theme.bg, borderBottomColor: theme.border },
     ]}
+    onPress={() => onToggle(section)}
+    activeOpacity={0.7}
   >
     {section.isFav ? (
       <View style={styles.sectionTitleRow}>
@@ -51,7 +53,14 @@ const SectionHeader = React.memo(({ section, theme }) => (
     ) : (
       <Text style={[styles.sectionTitle, { color: theme.subText }]}>{section.title}</Text>
     )}
-  </View>
+    {!section.isFav && (
+      <FontIcon
+        name={collapsed ? 'chevron-down' : 'chevron-up'}
+        size={12}
+        color={theme.subText}
+      />
+    )}
+  </TouchableOpacity>
 ))
 
 // ─── メインコンポーネント ──────────────────────────────────────────────
@@ -67,9 +76,13 @@ export default function BoardList() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [showRegionModal, setShowRegionModal] = useState(false)
+  const [collapsedCtgids, setCollapsedCtgids] = useState(new Set())
 
   useEffect(() => {
     loadCategories()
+  }, [acode])
+  useEffect(() => {
+    setCollapsedCtgids(new Set())
   }, [acode])
 
   const loadCategories = async () => {
@@ -82,7 +95,18 @@ export default function BoardList() {
 
       setRestrictedCtgids(rCtgids)
 
-      const missing = cats.filter((c) => !areatopBoards[c.ctgid]?.length)
+      const isJunkBoard = (b) =>
+        b?.name?.includes('もっと見る') ||
+        b?.name?.includes('PICKUP!')
+
+      const missing = cats.filter((c) => {
+        const boards = areatopBoards[c.ctgid] || []
+        const count = boards.length
+        if (count === 0) return true
+        if (boards.some(isJunkBoard)) return true
+        if (count < 10) return true
+        return false
+      })
       let allBoards = { ...areatopBoards }
 
       if (missing.length > 0) {
@@ -106,6 +130,7 @@ export default function BoardList() {
         .map((c) => ({ title: c.name, ctgid: c.ctgid, data: allBoards[c.ctgid] }))
 
       setAllSections(secs)
+      setCollapsedCtgids(new Set(secs.map((s) => String(s.ctgid))))
     } catch (e) {
       setError(e.message || 'エラーが発生しました')
     } finally {
@@ -143,8 +168,22 @@ export default function BoardList() {
   ), [onBoardPress, theme])
 
   const renderSectionHeader = useCallback(({ section }) => (
-    <SectionHeader section={section} theme={theme} />
-  ), [theme])
+    <SectionHeader
+      section={section}
+      theme={theme}
+      collapsed={collapsedCtgids.has(String(section.ctgid))}
+      onToggle={(sec) => {
+        if (sec.isFav) return
+        setCollapsedCtgids((prev) => {
+          const next = new Set(prev)
+          const key = String(sec.ctgid)
+          if (next.has(key)) next.delete(key)
+          else next.add(key)
+          return next
+        })
+      }}
+    />
+  ), [theme, collapsedCtgids])
 
   const renderRegionItem = useCallback(({ item }) => (
     <TouchableOpacity
@@ -199,7 +238,11 @@ export default function BoardList() {
         </View>
       ) : (
         <SectionList
-          sections={sections}
+          sections={sections.map((s) => (
+            s.isFav || !collapsedCtgids.has(String(s.ctgid))
+              ? s
+              : { ...s, data: [] }
+          ))}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
@@ -253,11 +296,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  sectionTitle: { fontSize: 12, fontWeight: '600' },
+  sectionTitle: { fontSize: 14, fontWeight: '600' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center' },
   boardItem: {
     flexDirection: 'row',
