@@ -699,11 +699,16 @@ export default function ThreadDetail() {
         </View>
         {renderBodyWithAnchors(item.body)}
         {item.rrid === 0 && item.imageUrl && (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.res0Image}
-            resizeMode="contain"
-          />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => Linking.openURL(item.imageUrl)}
+          >
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.res0Image}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         )}
         {item.rrid === 0 && item.sourceUrl && (
           <TouchableOpacity
