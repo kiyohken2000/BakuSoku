@@ -2,7 +2,7 @@
  * SQLite キャッシュ層（rw=1 モード専用）
  *
  * スキーマ:
- *   responses   (tid, rrid, name, date, body)  PRIMARY KEY (tid, rrid)
+ *   responses   (tid, rrid, name, date, body, image_url)  PRIMARY KEY (tid, rrid)
  *   thread_meta (tid, title, cached_at)
  *
  * 保持ポリシー: 直近 MAX_THREADS スレ分のみ保持（古いものは自動削除）
@@ -27,11 +27,12 @@ export async function initDb() {
     PRAGMA journal_mode = WAL;
 
     CREATE TABLE IF NOT EXISTS responses (
-      tid  INTEGER NOT NULL,
-      rrid INTEGER NOT NULL,
-      name TEXT    NOT NULL DEFAULT '',
-      date TEXT    NOT NULL DEFAULT '',
-      body TEXT    NOT NULL DEFAULT '',
+      tid       INTEGER NOT NULL,
+      rrid      INTEGER NOT NULL,
+      name      TEXT    NOT NULL DEFAULT '',
+      date      TEXT    NOT NULL DEFAULT '',
+      body      TEXT    NOT NULL DEFAULT '',
+      image_url TEXT    NOT NULL DEFAULT '',
       PRIMARY KEY (tid, rrid)
     );
 
@@ -41,6 +42,12 @@ export async function initDb() {
       cached_at INTEGER NOT NULL DEFAULT 0
     );
   `)
+
+  // 既存 DB への image_url カラム追加マイグレーション
+  const cols = await _db.getAllAsync('PRAGMA table_info(responses)')
+  if (!cols.some((c) => c.name === 'image_url')) {
+    await _db.execAsync("ALTER TABLE responses ADD COLUMN image_url TEXT NOT NULL DEFAULT ''")
+  }
 
   // 起動時に古いスレのキャッシュを削除
   await pruneOldThreads()
@@ -56,10 +63,16 @@ export async function initDb() {
 export async function getCachedResponses(tid) {
   const db = await initDb()
   const rows = await db.getAllAsync(
-    'SELECT rrid, name, date, body FROM responses WHERE tid = ? ORDER BY rrid ASC',
+    'SELECT rrid, name, date, body, image_url FROM responses WHERE tid = ? ORDER BY rrid ASC',
     [Number(tid)],
   )
-  return rows.map((r) => ({ ...r, rrid: Number(r.rrid) }))
+  return rows.map((r) => ({
+    rrid: Number(r.rrid),
+    name: r.name,
+    date: r.date,
+    body: r.body,
+    imageUrl: r.image_url || null,
+  }))
 }
 
 /** tid のキャッシュ済み最大 rrid を返す（キャッシュなしのときは 0）*/
@@ -79,7 +92,7 @@ export async function getMaxCachedRrid(tid) {
 /**
  * レスを SQLite に INSERT OR REPLACE する
  * @param {number|string} tid
- * @param {{ rrid: number, name: string, date: string, body: string }[]} responses
+ * @param {{ rrid: number, name: string, date: string, body: string, imageUrl?: string|null }[]} responses
  */
 export async function insertResponses(tid, responses) {
   if (!responses || responses.length === 0) return
@@ -88,8 +101,8 @@ export async function insertResponses(tid, responses) {
   await db.withTransactionAsync(async () => {
     for (const r of responses) {
       await db.runAsync(
-        'INSERT OR REPLACE INTO responses (tid, rrid, name, date, body) VALUES (?, ?, ?, ?, ?)',
-        [Number(tid), Number(r.rrid), r.name ?? '', r.date ?? '', r.body ?? ''],
+        'INSERT OR REPLACE INTO responses (tid, rrid, name, date, body, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+        [Number(tid), Number(r.rrid), r.name ?? '', r.date ?? '', r.body ?? '', r.imageUrl ?? ''],
       )
     }
     // thread_meta を更新（cached_at を更新して eviction の優先度を下げる）
