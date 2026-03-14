@@ -355,7 +355,26 @@ export function parseThread(html) {
     if (bodyStart !== -1) {
       const afterMarker = chunk.indexOf('>', bodyStart) + 1
       const bodyContent = chunk.substring(afterMarker)
-      const bodyEnd = bodyContent.indexOf('</div>')
+      // res_body 内にネストされた div がある場合（画像付きレスなど）でも
+      // 正しく res_body の閉じタグを見つけるため、div の開閉をカウントする
+      let bodyEnd = bodyContent.indexOf('</div>') // フォールバック
+      {
+        let depth = 1
+        let pos = 0
+        while (pos < bodyContent.length) {
+          const nextOpen = bodyContent.indexOf('<div', pos)
+          const nextClose = bodyContent.indexOf('</div>', pos)
+          if (nextClose === -1) break
+          if (nextOpen !== -1 && nextOpen < nextClose) {
+            depth++
+            pos = nextOpen + 4
+          } else {
+            depth--
+            if (depth === 0) { bodyEnd = nextClose; break }
+            pos = nextClose + 6
+          }
+        }
+      }
       if (bodyEnd !== -1) {
         body = bodyContent
           .substring(0, bodyEnd)
@@ -370,7 +389,7 @@ export function parseThread(html) {
           .replace(/\u00a0/g, ' ')  // non-breaking space
           .split('\n')
           .map((l) => l.trim())
-          .filter((l) => l.length > 0)
+          .filter((l) => l.length > 0 && !l.includes('画像拡大'))  // res_img ラベル除去
           .join('\n')
           .trim()
       }
@@ -393,7 +412,16 @@ export function parseThread(html) {
       }
     }
 
-    responses.push({ rrid, date, body, name })
+    // 画像URL: res_img 内 img タグの data-original を抽出（lazy-load 対応）
+    let imageUrl = null
+    const resImgIdx = chunk.indexOf('class="res_img"')
+    if (resImgIdx !== -1) {
+      const resImgArea = chunk.substring(resImgIdx, resImgIdx + 1000)
+      const dataOrigM = resImgArea.match(/data-original="([^"]+)"/)
+      if (dataOrigM) imageUrl = dataOrigM[1]
+    }
+
+    responses.push({ rrid, date, body, name, imageUrl })
   }
 
   // commentTime のないレス（quote）はスキップ済みなので重複は原則発生しないが念のため除去

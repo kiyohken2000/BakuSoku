@@ -729,14 +729,14 @@ export default function ThreadDetail() {
           return (
             <>
               {renderBodyWithAnchors(displayBody)}
-              {item.rrid === 0 && displayImageUrl && (
+              {displayImageUrl && (
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => Linking.openURL(displayImageUrl)}
                 >
                   <Image
                     source={{ uri: displayImageUrl }}
-                    style={styles.res0Image}
+                    style={item.rrid === 0 ? styles.res0Image : styles.resImage}
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
@@ -1223,8 +1223,16 @@ export default function ThreadDetail() {
 
       {/* 返信一覧ポップアップ */}
       <Modal visible={showReplyList} transparent animationType="slide">
-        <View style={styles.replyListOverlay}>
-          <View style={[styles.replyListBox, { backgroundColor: theme.surface }]}>
+        <TouchableOpacity
+          style={styles.replyListOverlay}
+          activeOpacity={1}
+          onPress={() => setReplyListTarget(null)}
+        >
+          <View
+            style={[styles.replyListBox, { backgroundColor: theme.surface }]}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             {/* ヘッダー */}
             <View style={[styles.replyListHeader, { borderBottomColor: theme.border }]}>
               <Text style={[styles.replyListTitle, { color: theme.text }]}>
@@ -1270,7 +1278,7 @@ export default function ThreadDetail() {
               )
             })()}
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
       <Modal visible={showAnchorPopup} transparent animationType="fade">
@@ -1771,6 +1779,12 @@ const styles = StyleSheet.create({
     height: 220,
     marginTop: 10,
     borderRadius: 8,
+  },
+  resImage: {
+    width: 160,
+    height: 160,
+    marginTop: 6,
+    borderRadius: 6,
   },
   sourceUrlBtn: {
     marginTop: 10,
