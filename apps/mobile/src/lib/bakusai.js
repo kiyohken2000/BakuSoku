@@ -442,6 +442,30 @@ export function parseThread(html) {
       if (provText) sourceLines.push('\u3010\u63d0\u4f9b\u3011' + provText)
     }
 
+    // 画像 URL: div_box 内の最初の <img src="...">（スペーサー画像は除外）
+    let imageUrl = null
+    if (divBoxM) {
+      const imgM = divBoxM[1].match(/<img[^>]+src="([^"]+)"/)
+      if (imgM && !imgM[1].includes('spacer') && !imgM[1].includes('loading')) {
+        imageUrl = imgM[1]
+      }
+    }
+    // data-original (遅延ロード対応)
+    if (!imageUrl && divBoxM) {
+      const origM = divBoxM[1].match(/data-original="([^"]+)"/)
+      if (origM && !origM[1].includes('spacer')) imageUrl = origM[1]
+    }
+
+    // 元記事 URL: href="https://..." で「元記事」に近い <a>
+    let sourceUrl = null
+    const srcLinkM = res0Block.match(/href="(https?:\/\/[^"]+)"[^>]*>[^<]*(?:\u5143\u8a18\u4e8b|\u8a18\u4e8b\u3092\u8aad\u3080)[^<]*<\/a>/)
+    if (srcLinkM) sourceUrl = srcLinkM[1]
+    // NewsAeticleUrl クラス内の href でもフォールバック
+    if (!sourceUrl) {
+      const newsUrlM = res0Block.match(/class="NewsAeticleUrl"[\s\S]*?href="(https?:\/\/[^"]+)"/)
+      if (newsUrlM) sourceUrl = newsUrlM[1]
+    }
+
     const bodyParts = []
     if (res0title) bodyParts.push(res0title)
     if (articleText) {
@@ -455,7 +479,7 @@ export function parseThread(html) {
 
     const res0body = bodyParts.join('\n')
     if (res0body && !uniqueResponses.some((r) => r.rrid === 0)) {
-      uniqueResponses.unshift({ rrid: 0, date: res0date, body: res0body, name: '' })
+      uniqueResponses.unshift({ rrid: 0, date: res0date, body: res0body, name: '', imageUrl, sourceUrl })
     }
   }
 

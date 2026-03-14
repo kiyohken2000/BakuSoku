@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   View,
   Text,
+  Image,
   FlatList,
   ScrollView,
   TouchableOpacity,
@@ -46,6 +47,7 @@ export default function ThreadDetail() {
 
   const [responses, setResponses] = useState([])
   const [pageTitle, setPageTitle] = useState(title || '')
+  const [totalCount, setTotalCount] = useState(null)
   const [formFields, setFormFields] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -238,6 +240,7 @@ export default function ThreadDetail() {
         if (firstFetch) {
           setPageTitle(data.pageTitle || title)
           setFormFields(data.formFields)
+          if (data.totalCount) setTotalCount(data.totalCount)
           addHistory({ tid, title: data.pageTitle || title, acode, ctgid, bid, at: Date.now() })
           setIsLoading(false)
           setIsRefreshing(false)
@@ -695,6 +698,24 @@ export default function ThreadDetail() {
           <Text style={[styles.date, { color: theme.subText }]}>{item.date}</Text>
         </View>
         {renderBodyWithAnchors(item.body)}
+        {item.rrid === 0 && item.imageUrl && (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.res0Image}
+            resizeMode="contain"
+          />
+        )}
+        {item.rrid === 0 && item.sourceUrl && (
+          <TouchableOpacity
+            style={[styles.sourceUrlBtn, { borderColor: theme.border }]}
+            onPress={() => Linking.openURL(item.sourceUrl)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.sourceUrlText, { color: theme.accent }]}>
+              {'\u5143\u8a18\u4e8b\u3092\u8aad\u3080 \u2192'}
+            </Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.responseFooter}>
           {(rating.good > 0 || rating.bad > 0) && (
             <View style={styles.goodBadRow}>
@@ -1146,6 +1167,11 @@ export default function ThreadDetail() {
             <Text style={[styles.titlePopupText, { color: theme.text }]} selectable>
               {pageTitle}
             </Text>
+            {totalCount !== null && (
+              <Text style={[styles.titlePopupResCount, { color: theme.subText }]}>
+                {totalCount}{'\u30ec\u30b9'}
+              </Text>
+            )}
             <TouchableOpacity
               style={[styles.titlePopupClose, { borderTopColor: theme.border }]}
               onPress={() => setShowTitleModal(false)}
@@ -1694,10 +1720,26 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   titlePopupText: { fontSize: 15, lineHeight: 22 },
+  titlePopupResCount: { fontSize: 13, marginTop: 8 },
   titlePopupClose: {
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
   },
+  res0Image: {
+    width: '100%',
+    height: 220,
+    marginTop: 10,
+    borderRadius: 8,
+  },
+  sourceUrlBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  sourceUrlText: { fontSize: 13, fontWeight: '600' },
 })
