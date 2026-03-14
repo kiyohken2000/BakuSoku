@@ -710,7 +710,7 @@ export default function ThreadDetail() {
               hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
               style={styles.replyCountBtn}
             >
-              <Text style={[styles.replyCountText, { color: theme.accent }]}>
+              <Text style={[styles.replyCountText, { color: '#3b82f6' }]}>
                 {replyCounts[item.rrid]}件の返信
               </Text>
             </TouchableOpacity>
