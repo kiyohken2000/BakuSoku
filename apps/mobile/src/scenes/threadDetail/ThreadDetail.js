@@ -247,6 +247,7 @@ export default function ThreadDetail() {
           firstFetch = false
         }
 
+
         // ?????????????
         // rfs=false (??): ??+????????????
         const existRrids = new Set(allResps.map((r) => r.rrid))
@@ -258,6 +259,14 @@ export default function ThreadDetail() {
         }
 
         allResps = rfs ? [...allResps, ...fresh] : [...allResps, ...[...fresh].reverse()]
+
+        // rrid=0 は常にリスト先頭に置く（ページ2以降から始まった場合に末尾に来るのを防ぐ）
+        const zeroIdx = allResps.findIndex((r) => r.rrid === 0)
+        if (zeroIdx > 0) {
+          const res0 = allResps.splice(zeroIdx, 1)[0]
+          allResps = [res0, ...allResps]
+        }
+
         setResponses([...allResps])
 
         const nextPage = rfs ? data.nextRw1Page : data.nextNormalPage
@@ -697,30 +706,55 @@ export default function ThreadDetail() {
           <Text style={[styles.name, { color: theme.subText }]}>{item.name}</Text>
           <Text style={[styles.date, { color: theme.subText }]}>{item.date}</Text>
         </View>
-        {renderBodyWithAnchors(item.body)}
-        {item.rrid === 0 && item.imageUrl && (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => Linking.openURL(item.imageUrl)}
-          >
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={styles.res0Image}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        )}
-        {item.rrid === 0 && item.sourceUrl && (
-          <TouchableOpacity
-            style={[styles.sourceUrlBtn, { borderColor: theme.border }]}
-            onPress={() => Linking.openURL(item.sourceUrl)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.sourceUrlText, { color: theme.accent }]}>
-              {'\u5143\u8a18\u4e8b\u3092\u8aad\u3080 \u2192'}
-            </Text>
-          </TouchableOpacity>
-        )}
+        {(() => {
+          // rrid=0 の場合、body に埋め込まれたマーカーから imageUrl/sourceUrl を復元
+          let displayBody = item.body
+          let displayImageUrl = item.imageUrl ?? null
+          let displaySourceUrl = item.sourceUrl ?? null
+          if (item.rrid === 0) {
+            const sepIdx = item.body.indexOf('\n\x03\n')
+            if (sepIdx !== -1) {
+              const markerBlock = item.body.substring(0, sepIdx)
+              displayBody = item.body.substring(sepIdx + 3)
+              if (!displayImageUrl) {
+                const imgM = markerBlock.match(/^\x02IMG\x02(.+)$/m)
+                if (imgM) displayImageUrl = imgM[1]
+              }
+              if (!displaySourceUrl) {
+                const srcM = markerBlock.match(/^\x02SRC\x02(.+)$/m)
+                if (srcM) displaySourceUrl = srcM[1]
+              }
+            }
+          }
+          return (
+            <>
+              {renderBodyWithAnchors(displayBody)}
+              {item.rrid === 0 && displayImageUrl && (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => Linking.openURL(displayImageUrl)}
+                >
+                  <Image
+                    source={{ uri: displayImageUrl }}
+                    style={styles.res0Image}
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              )}
+              {item.rrid === 0 && displaySourceUrl && (
+                <TouchableOpacity
+                  style={[styles.sourceUrlBtn, { borderColor: theme.border }]}
+                  onPress={() => Linking.openURL(displaySourceUrl)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.sourceUrlText, { color: theme.accent }]}>
+                    {'\u5143\u8a18\u4e8b\u3092\u8aad\u3080 \u2192'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          )
+        })()}
         <View style={styles.responseFooter}>
           {(rating.good > 0 || rating.bad > 0) && (
             <View style={styles.goodBadRow}>

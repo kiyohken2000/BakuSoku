@@ -421,7 +421,7 @@ export function parseThread(html) {
       ? decodeEntities(titleM[1].replace(/<[^>]*>/g, '').trim())
       : ''
 
-    // 記事本文: div_box (showmore_list) 内の <p> テキスト
+    // 記事本文 (type A): div_box (showmore_list) 内の <p> テキスト (rss_news 系)
     let articleText = ''
     const divBoxM = res0Block.match(/<div[^>]*id="div_box"[^>]*>([\s\S]*?)(?:<\/div>\s*<!--\s*\/showmore_list|<\/section>)/)
     if (divBoxM) {
@@ -432,17 +432,34 @@ export function parseThread(html) {
         .join('\n')
     }
 
-    // 配信元情報: 【日時】【提供】
+    // 記事本文 (type B): imgbody[itemprop=articlebody] (imagebbs 系)
+    if (!articleText) {
+      const imgBodyM = res0Block.match(/<div[^>]*itemprop="articlebody"[^>]*>([\s\S]*?)<\/div>/)
+      if (imgBodyM) {
+        articleText = decodeEntities(
+          imgBodyM[1]
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]*>/g, '')
+        )
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0)
+          .join('\n')
+          .trim()
+      }
+    }
+
+    // 配信元情報: 【日時】【提供】【ソース】
     const sourceLines = []
     const jijiM = res0Block.match(/【日時】([^\n<]{1,80})/)
     if (jijiM) sourceLines.push('\u3010\u65e5\u6642\u3011' + jijiM[1].trim())
-    const provM = res0Block.match(/【提供】([\s\S]*?)(?:<span|<\/div>|\n)/)
+    const provM = res0Block.match(/【(?:\u63d0\u4f9b|\u30bd\u30fc\u30b9)】([\s\S]*?)(?:<span|<\/div>|\n)/)
     if (provM) {
       const provText = provM[1].replace(/<[^>]*>/g, '').trim()
       if (provText) sourceLines.push('\u3010\u63d0\u4f9b\u3011' + provText)
     }
 
-    // 画像 URL: div_box 内の最初の <img src="...">（スペーサー画像は除外）
+    // 画像 URL (type A): div_box 内の <img src>（スペーサー画像は除外）
     let imageUrl = null
     if (divBoxM) {
       const imgM = divBoxM[1].match(/<img[^>]+src="([^"]+)"/)
@@ -454,6 +471,13 @@ export function parseThread(html) {
     if (!imageUrl && divBoxM) {
       const origM = divBoxM[1].match(/data-original="([^"]+)"/)
       if (origM && !origM[1].includes('spacer')) imageUrl = origM[1]
+    }
+    // 画像 URL (type B): thr_img div 内の <img src>（imagebbs 系）
+    if (!imageUrl) {
+      const thrImgM = res0Block.match(/<div[^>]*class="thr_img[^"]*"[\s\S]*?<img[^>]+src="([^"]+)"/)
+      if (thrImgM && !thrImgM[1].includes('spacer') && !thrImgM[1].includes('loading')) {
+        imageUrl = thrImgM[1]
+      }
     }
 
     // 元記事 URL: href="https://..." で「元記事」に近い <a>
@@ -479,7 +503,15 @@ export function parseThread(html) {
 
     const res0body = bodyParts.join('\n')
     if (res0body && !uniqueResponses.some((r) => r.rrid === 0)) {
-      uniqueResponses.unshift({ rrid: 0, date: res0date, body: res0body, name: '', imageUrl, sourceUrl })
+      // imageUrl / sourceUrl を body の先頭にマーカーとして埋め込む
+      // → SQLite にキャッシュされた後でも復元できるようにする
+      const markerLines = []
+      if (imageUrl) markerLines.push(`\x02IMG\x02${imageUrl}`)
+      if (sourceUrl) markerLines.push(`\x02SRC\x02${sourceUrl}`)
+      const encodedBody = markerLines.length > 0
+        ? markerLines.join('\n') + '\n\x03\n' + res0body
+        : res0body
+      uniqueResponses.unshift({ rrid: 0, date: res0date, body: encodedBody, name: '', imageUrl, sourceUrl })
     }
   }
 
