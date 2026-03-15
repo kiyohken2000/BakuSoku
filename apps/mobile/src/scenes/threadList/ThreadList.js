@@ -16,6 +16,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import * as Haptics from 'expo-haptics'
 import FontIcon from 'react-native-vector-icons/FontAwesome'
 import { getThreadList } from 'lib/bakusai'
+import { clearThreadCache } from 'lib/db'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
 import ContextMenu from 'components/ContextMenu'
@@ -24,7 +25,21 @@ export default function ThreadList() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, boardName } = route.params
-  const { readSet, ngWords, addFavorite, removeFavorite, favorites, seenCounts, markSeen, favoriteThreads, addFavoriteThread, removeFavoriteThread } = useSettings()
+  const {
+    readSet,
+    ngWords,
+    addFavorite,
+    removeFavorite,
+    favorites,
+    seenCounts,
+    markSeen,
+    favoriteThreads,
+    addFavoriteThread,
+    removeFavoriteThread,
+    readHistory,
+    setReadHistory,
+    clearThreadState,
+  } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
 
@@ -125,6 +140,12 @@ export default function ThreadList() {
     if (searchQuery.trim()) return t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())
     return true
   })
+
+  const removeFromHistory = (tid) => {
+    setReadHistory(readHistory.filter((h) => String(h.tid) !== String(tid)))
+    clearThreadState(tid)
+    clearThreadCache(tid).catch(() => {})
+  }
 
   const renderThread = ({ item }) => {
     const isRead = readSet[item.tid] !== undefined
@@ -280,15 +301,26 @@ export default function ThreadList() {
               }
             : {
                 label: 'スレをお気に入りに追加',
-                onPress: () => addFavoriteThread({ tid: menuItem.tid, title: menuItem.title, acode, ctgid, bid }),
+                onPress: () => addFavoriteThread({
+                  tid: menuItem.tid,
+                  title: menuItem.title,
+                  acode,
+                  ctgid,
+                  bid,
+                }),
               },
+          readHistory.some((h) => String(h.tid) === String(menuItem.tid)) && {
+            label: '履歴を削除',
+            onPress: () => removeFromHistory(menuItem.tid),
+            destructive: true,
+          },
           {
             label: 'ブラウザで開く',
             onPress: () => Linking.openURL(
               `https://bakusai.com/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${menuItem.tid}/tp=1/`
             ),
           },
-        ] : []}
+        ].filter(Boolean) : []}
       />
     </SafeAreaView>
   )

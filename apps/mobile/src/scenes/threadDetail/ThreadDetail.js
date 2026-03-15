@@ -30,13 +30,32 @@ import { createMqttClient } from 'lib/mqttClient'
 import { getCachedResponses, insertResponses, clearThreadCache } from 'lib/db'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
-import { showToast } from 'utils/showToast'
 
 export default function ThreadDetail() {
   const navigation = useNavigation()
   const route = useRoute()
   const { acode, ctgid, bid, tid, title } = route.params
-  const { ngWords, setNgWords, addHistory, markRead, readSet, readFromStart, setReadFromStart, favoriteThreads, addFavoriteThread, removeFavoriteThread, postEulaAccepted, acceptPostEula, readPositions, saveReadPosition, threadReadModes, setThreadReadMode, myPosts, addMyPosts, isSettingsLoaded } = useSettings()
+  const {
+    ngWords,
+    setNgWords,
+    addHistory,
+    markRead,
+    readSet,
+    readFromStart,
+    setReadFromStart,
+    favoriteThreads,
+    addFavoriteThread,
+    removeFavoriteThread,
+    postEulaAccepted,
+    acceptPostEula,
+    readPositions,
+    saveReadPosition,
+    threadReadModes,
+    setThreadReadMode,
+    myPosts,
+    addMyPosts,
+    isSettingsLoaded,
+  } = useSettings()
 
   // スレ固有の上書き設定があればそちらを優先、なければグローバルデフォルトを使用
   const effectiveReadFromStart = threadReadModes[String(tid)] !== undefined
@@ -64,6 +83,7 @@ export default function ThreadDetail() {
   const [hasNewerPages, setHasNewerPages] = useState(false)
   const [newerPage, setNewerPage] = useState(2)
   const [loadingNewer, setLoadingNewer] = useState(false)
+  const isLoadingMore = loadingOlder || loadingNewer
 
   const [isRefreshing, setIsRefreshing] = useState(false)
 
@@ -207,18 +227,23 @@ export default function ThreadDetail() {
   }, [effectiveReadFromStart])
 
   const loadThread = async (initialPage, rfs) => {
+    const readFromStartResolved = rfs ?? effectiveReadFromStart
     setError(null)
 
     // rw=1 ???? SQLite ?????????????
     let allResps = []
-    if (rfs) {
-      const cached = await getCachedResponses(tid)
-      if (cached.length > 0) {
-        allResps = cached
-        setResponses([...cached])
-        setIsLoading(false)
-        setIsRefreshing(false)
-      } else {
+    if (readFromStartResolved) {
+      try {
+        const cached = await getCachedResponses(tid)
+        if (cached.length > 0) {
+          allResps = cached
+          setResponses([...cached])
+          setIsLoading(false)
+          setIsRefreshing(false)
+        } else {
+          if (!isRefreshing) setIsLoading(true)
+        }
+      } catch (e) {
         if (!isRefreshing) setIsLoading(true)
       }
     } else {
@@ -231,7 +256,7 @@ export default function ThreadDetail() {
 
     try {
       while (true) {
-        const data = rfs
+        const data = readFromStartResolved
           ? await getThreadFromStart(acode, ctgid, bid, tid, page)
           : await getThread(acode, ctgid, bid, tid, page)
 
@@ -255,11 +280,11 @@ export default function ThreadDetail() {
         const fresh = data.responses.filter((r) => !existRrids.has(r.rrid))
 
         // rw=1: ???SQLite ??????
-        if (rfs && fresh.length > 0) {
+        if (readFromStartResolved && fresh.length > 0) {
           insertResponses(tid, fresh).catch(() => {})
         }
 
-        allResps = rfs ? [...allResps, ...fresh] : [...allResps, ...[...fresh].reverse()]
+        allResps = readFromStartResolved ? [...allResps, ...fresh] : [...allResps, ...[...fresh].reverse()]
 
         // rrid=0 は常にリスト先頭に置く（ページ2以降から始まった場合に末尾に来るのを防ぐ）
         const zeroIdx = allResps.findIndex((r) => r.rrid === 0)
@@ -270,11 +295,11 @@ export default function ThreadDetail() {
 
         setResponses([...allResps])
 
-        const nextPage = rfs ? data.nextRw1Page : data.nextNormalPage
+        const nextPage = readFromStartResolved ? data.nextRw1Page : data.nextNormalPage
 
         // ??????????????? or ??????????? state ???
         if (!nextPage || allResps.length >= INITIAL_TARGET) {
-          if (rfs) {
+          if (readFromStartResolved) {
             setHasNewerPages(nextPage !== null)
             setNewerPage(nextPage ?? lastLoadedPage + 1)
             setHasOlderPages(false)
@@ -290,12 +315,12 @@ export default function ThreadDetail() {
 
       if (allResps.length > 0) {
         // rfs=false ?????????
-        const latestRrid = rfs
+        const latestRrid = readFromStartResolved
           ? allResps[allResps.length - 1].rrid
           : allResps[0].rrid
         markRead(tid, latestRrid)
         // rw=1 ??????????????????
-        if (rfs) saveReadPosition(tid, lastLoadedPage)
+        if (readFromStartResolved) saveReadPosition(tid, lastLoadedPage)
         loadRatings(tid, allResps.map((r) => r.rrid))
       }
     } catch (e) {
@@ -311,13 +336,12 @@ export default function ThreadDetail() {
     const next = !effectiveReadFromStart
     setThreadReadMode(String(tid), next)
     resumeRridRef.current = null  // モード切替後は初期位置スクロールをリセット
-    setResponses([])
     loadThread(null, next)
   }
 
   // ?????????????(??): ????????
   const loadOlderResponses = async () => {
-    if (loadingOlder) return
+    if (loadingOlder || loadingNewer || isLoading) return
     setLoadingOlder(true)
     try {
       const data = await getThread(acode, ctgid, bid, tid, olderPage)
@@ -343,7 +367,7 @@ export default function ThreadDetail() {
   // ?????????????(rw=1): ??????(??????=??????) ???
   // ? ????? ref ????? onScrollEndDrag ? stale closure ???
   const loadNewerResponses = async () => {
-    if (loadingNewer) return
+    if (loadingNewer || loadingOlder || isLoading) return
     setLoadingNewer(true)
     try {
       const data = await getThreadFromStart(acode, ctgid, bid, tid, newerPage)
@@ -624,6 +648,9 @@ export default function ThreadDetail() {
     }, [])
   }, [displayResponses, searchQuery])
 
+  const disableReadModeToggle = isLoadingMore
+  const readModeToggleColor = disableReadModeToggle ? theme.subText : theme.text
+
   // ??????????????????????????
   useEffect(() => { setSearchMatchIdx(0) }, [searchQuery])
 
@@ -903,10 +930,10 @@ export default function ThreadDetail() {
         <View style={styles.center}>
           <Text style={[styles.errorText, { color: theme.subText }]}>{error}</Text>
           <TouchableOpacity
-            onPress={() => loadThread(null)}
+            onPress={() => loadThread(null, effectiveReadFromStart)}
             style={[styles.retryBtn, { borderColor: theme.accent }]}
           >
-            <Text style={{ color: theme.accent }}>再読込</Text>
+            <Text style={{ color: theme.accent }}>再試行</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -1032,11 +1059,12 @@ export default function ThreadDetail() {
             </TouchableOpacity>
             <View style={[styles.menuDivider, { backgroundColor: theme.border }]} />
             <TouchableOpacity
-              style={styles.menuItem}
+              style={[styles.menuItem, disableReadModeToggle && styles.menuItemDisabled]}
               onPress={() => { toggleReadMode(); setShowMenu(false) }}
+              disabled={disableReadModeToggle}
             >
-              <FontIcon name={effectiveReadFromStart ? 'arrow-right' : 'arrow-up'} size={15} color={theme.text} style={{ width: 22 }} />
-              <Text style={[styles.menuItemText, { color: theme.text }]}>
+              <FontIcon name={effectiveReadFromStart ? 'arrow-right' : 'arrow-up'} size={15} color={readModeToggleColor} style={{ width: 22 }} />
+              <Text style={[styles.menuItemText, { color: readModeToggleColor }]}>
                 {effectiveReadFromStart ? '最新順で読む' : '>>1から読む'}
               </Text>
             </TouchableOpacity>
@@ -1407,6 +1435,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
   },
+  menuItemDisabled: { opacity: 0.5 },
   menuItemText: { fontSize: 14 },
   menuDivider: { height: StyleSheet.hairlineWidth, marginHorizontal: 12 },
   headerTitleBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },

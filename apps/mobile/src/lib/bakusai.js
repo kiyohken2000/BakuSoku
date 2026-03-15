@@ -85,15 +85,16 @@ const getHeaders = (extra = {}) => ({
 // Fetch ヘルパー
 // ------------------------------------
 
-async function doGet(path) {
+async function doGet(path, extra = {}) {
   if (!_initialized) await initBakusai()
   const res = await fetch(BASE_URL + path, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: getHeaders(extra),
   })
   applySetCookie(res.headers)
   return res.text()
 }
+
 
 async function doPost(path, body, extra = {}) {
   if (!_initialized) await initBakusai()
@@ -356,7 +357,7 @@ export function parseThreadList(html) {
   return { threads, nextPage }
 }
 
-export function parseThread(html) {
+export function parseThread(html, currentPage = null) {
   const responses = []
   // 実際の HTML は <li id="res{rrid}_block" 形式
   const parts = html.split(/<li\s+id="res/)
@@ -369,10 +370,15 @@ export function parseThread(html) {
     const rrid = parseInt(rridMatch[1], 10)
 
     // 日時: itemprop="commentTime" スパン内テキスト
-    // quote（引用）レスには commentTime が存在しないためスキップ → 重複排除が不要になる
+    // 一部ページでは commentTime が欠けるため、フォールバックで日付文字列を拾う
     const commentTimeMatch = chunk.match(/itemprop="commentTime"[^>]*>([\s\S]*?)<\/span>/)
-    if (!commentTimeMatch) continue // quote レスをスキップ
-    const date = commentTimeMatch[1].trim()
+    let date = ''
+    if (commentTimeMatch) {
+      date = commentTimeMatch[1].trim()
+    } else {
+      const altDateMatch = chunk.match(/(\d{4}\/\d{2}\/\d{2}\s+\d{2}:\d{2})/)
+      if (altDateMatch) date = altDateMatch[1]
+    }
 
     let body = ''
     const bodyMarker = 'class="res_body"'
@@ -456,6 +462,7 @@ export function parseThread(html) {
     seen.add(r.rrid)
     return true
   })
+
 
   // 画像・ニュース系ボード: <li id="res0_whole"> に記事本文がある場合は先頭に挿入
   // (通常ボードの res0_block は空なのでスキップされており、pageTitle フォールバックは
@@ -596,6 +603,33 @@ export function parseThread(html) {
       const normalMatch = nextUrl.match(/\/p=(\d+)\/tp=1\/(?!rw)/)
       if (rw1Match) nextRw1Page = parseInt(rw1Match[1], 10)
       else if (normalMatch) nextNormalPage = parseInt(normalMatch[1], 10)
+    }
+  }
+
+  const current = currentPage ?? 1
+  const tid = tidMatch ? tidMatch[1] : ''
+  if (tid && (nextRw1Page === null || nextNormalPage === null)) {
+    const hrefRegex = /href="([^"]*\/thr_res\/[^"]+)"/g
+    const rw1Pages = new Set()
+    const normalPages = new Set()
+    let m
+    while ((m = hrefRegex.exec(html)) !== null) {
+      const href = m[1]
+      if (!href.includes(`tid=${tid}`)) continue
+      const isRw1 = href.includes('/rw=1/')
+      let p = 1
+      const pm = href.match(/\/p=(\d+)\/tp=1\//)
+      if (pm) p = parseInt(pm[1], 10)
+      if (isRw1) rw1Pages.add(p)
+      else normalPages.add(p)
+    }
+    if (nextRw1Page === null && rw1Pages.size > 0) {
+      const cand = [...rw1Pages].filter((p) => p > current).sort((a, b) => a - b)
+      if (cand.length > 0) nextRw1Page = cand[0]
+    }
+    if (nextNormalPage === null && normalPages.size > 0) {
+      const cand = [...normalPages].filter((p) => p > current).sort((a, b) => a - b)
+      if (cand.length > 0) nextNormalPage = cand[0]
     }
   }
 
@@ -773,7 +807,7 @@ export async function getThread(acode, ctgid, bid, tid, page = null) {
       ? `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/p=${page}/tp=1/`
       : `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/tp=1/`
   const html = await doGet(path)
-  return parseThread(html)
+  return parseThread(html, page ?? 1)
 }
 
 // 最初から表示: bakusai 公式の rw=1 パラメータを使用 (最古ページから表示)
@@ -782,7 +816,7 @@ export async function getThreadFromStart(acode, ctgid, bid, tid, page = null) {
     ? `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/p=${page}/tp=1/rw=1/`
     : `/thr_res/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/tp=1/rw=1/`
   const html = await doGet(path)
-  const result = parseThread(html)
+  const result = parseThread(html, page ?? 1)
   console.log('[bakusai] rw=1 page:', page ?? 1,
     'responses:', result.responses.length,
     'nextRw1Page:', result.nextRw1Page)
@@ -807,7 +841,7 @@ export async function getResShow(acode, ctgid, bid, tid, rrid) {
   const html = await doGet(
     `/thr_res_show/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/rrid=${rrid}/`,
   )
-  const result = parseThread(html)
+  const result = parseThread(html, null)
   return result.responses[0] || null
 }
 

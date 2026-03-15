@@ -19,6 +19,7 @@ Thumbs.db
 
 # Scripts output
 scripts/out/
+scripts/_out/
 
 # Expo
 *.jks

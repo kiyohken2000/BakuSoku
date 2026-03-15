@@ -126,6 +126,48 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_fav_threads', next)
   }
 
+  const clearThreadReadState = (tid) => {
+    const key = String(tid)
+    if (readSet[key] !== undefined) {
+      const next = { ...readSet }
+      delete next[key]
+      setReadSet(next)
+      save('@bakusai_readset', next)
+    }
+    if (seenCounts[key] !== undefined) {
+      const next = { ...seenCounts }
+      delete next[key]
+      setSeenCounts(next)
+      save('@bakusai_seencounts', next)
+    }
+  }
+
+  const clearThreadState = (tid) => {
+    const key = String(tid)
+    clearThreadReadState(key)
+
+    if (readPositions[key] !== undefined) {
+      const next = { ...readPositions }
+      delete next[key]
+      setReadPositionsState(next)
+      save('@bakusai_readpos', next)
+    }
+
+    if (threadReadModes[key] !== undefined) {
+      const next = { ...threadReadModes }
+      delete next[key]
+      setThreadReadModesState(next)
+      save('@bakusai_thread_read_modes', next)
+    }
+
+    if (myPosts[key] !== undefined) {
+      const next = { ...myPosts }
+      delete next[key]
+      setMyPostsState(next)
+      save('@bakusai_my_posts', next)
+    }
+  }
+
   // 表示モード切替: 全スレ共通・永続化
   const setReadFromStart = (v) => {
     setReadFromStartState(v)
@@ -216,6 +258,8 @@ export const SettingsContextProvider = ({ children }) => {
         markRead,
         seenCounts,
         markSeen,
+        clearThreadReadState,
+        clearThreadState,
         readFromStart,
         setReadFromStart,
         memo,

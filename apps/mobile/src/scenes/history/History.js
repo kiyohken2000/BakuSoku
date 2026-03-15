@@ -17,6 +17,7 @@ import FontIcon from 'react-native-vector-icons/FontAwesome'
 import { useSettings } from 'contexts/SettingsContext'
 import { useTheme } from 'contexts/ThemeContext'
 import { AREA_NAMES, checkThreadLatestRrid } from 'lib/bakusai'
+import { clearThreadCache } from 'lib/db'
 import ContextMenu from 'components/ContextMenu'
 
 export default function History() {
@@ -25,6 +26,7 @@ export default function History() {
     readHistory, setReadHistory,
     favoriteThreads, addFavoriteThread, removeFavoriteThread,
     readSet,
+    clearThreadState,
   } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
@@ -94,6 +96,8 @@ export default function History() {
 
   const removeFromHistory = (tid) => {
     setReadHistory(readHistory.filter((h) => h.tid !== tid))
+    clearThreadState(tid)
+    clearThreadCache(tid).catch(() => {})
   }
 
   const formatDate = (ts) => {
