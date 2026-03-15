@@ -3968,6 +3968,11 @@ expo-asset@~55.0.8:
     "@expo/image-utils" "^0.8.12"
     expo-constants "~55.0.7"
 
+expo-audio@~55.0.8:
+  version "55.0.8"
+  resolved "https://registry.yarnpkg.com/expo-audio/-/expo-audio-55.0.8.tgz#a8c487b407a1f8a457c83340977ec793a6a0d353"
+  integrity sha512-X61pQSikE2rsP2ZTMFUMThOmgGyYEHcmZpGVMrKJgcYtRCFKuctB/z69dFQPoumL+zTz8qlBoGohjkHVvA9P8A==
+
 expo-clipboard@~55.0.8:
   version "55.0.8"
   resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-55.0.8.tgz#9e7a0a16c9fc41caa91e216e7aa5457567558e55"
@@ -4066,6 +4071,11 @@ expo-manifests@~55.0.9:
     "@expo/config" "~55.0.8"
     expo-json-utils "~55.0.0"
 
+expo-media-library@~55.0.9:
+  version "55.0.9"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-55.0.9.tgz#707f018d2c6dfc5ed3f8a49525b108df1d4fe25d"
+  integrity sha512-E12e4gjQEZNdAa7MHDLOAiOMQmhmOGHFMMU5DpiK6I01hPXyRcaxgAQQLpibIXNP4O5LjGi2psa3NBacjyjxkw==
+
 expo-modules-autolinking@55.0.9:
   version "55.0.9"
   resolved "https://registry.yarnpkg.com/expo-modules-autolinking/-/expo-modules-autolinking-55.0.9.tgz#013c08a70b7090e9874a3d1047e0877a7d0383f8"
@@ -4135,6 +4145,11 @@ expo-updates@~55.0.12:
     glob "^13.0.0"
     ignore "^5.3.1"
     resolve-from "^5.0.0"
+
+expo-video@~55.0.10:
+  version "55.0.10"
+  resolved "https://registry.yarnpkg.com/expo-video/-/expo-video-55.0.10.tgz#bcfbbefee82753d814afbd64c6c387afc8f53050"
+  integrity sha512-L3UXgvGjrJv4ym3PnIGPPQi4LlVHQSh89eYm2Q7Pn9iUy5ce98sAdqPIKV88bfdLAIWfmPecYUoOzozXBPmenw==
 
 expo-web-browser@~55.0.9:
   version "55.0.9"

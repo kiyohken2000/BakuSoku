@@ -7,7 +7,7 @@
       "ios",
       "android"
     ],
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/logo-sm.png",
     "splash": {
@@ -30,6 +30,7 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Use the photo library to change your avatar.",
+        "NSPhotoLibraryAddUsageDescription": "画像をフォトライブラリに保存するために使用します",
         "CFBundleDevelopmentRegion": "ja_JP",
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -41,7 +42,10 @@
       "userInterfaceStyle": "automatic",
       "permissions": [
         "VIBRATE",
-        "CAMERA"
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "com.android.vending.BILLING"
       ]
     },
     "packagerOpts": {
@@ -62,7 +66,9 @@
       "expo-asset",
       "expo-notifications",
       "expo-web-browser",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-video",
+      "expo-audio"
     ],
     "extra": {
       "eas": {
