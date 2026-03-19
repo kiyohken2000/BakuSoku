@@ -17,7 +17,18 @@
       "Bash(git -C /c/Users/all/develop/expo/bakusoku log --pretty=format:\"%h %s\" --date=short | head -20)",
       "Bash(cd C:\\\\Users\\\\all\\\\develop\\\\expo\\\\bakusoku/apps/mobile && npm install 2>&1 | tail -20)",
       "Bash(cd /c/Users/all/develop/expo/bakusoku/apps/mobile && npm install 2>&1 | tail -20)",
-      "Bash(cd C:/Users/all/develop/expo/bakusoku/apps/web && npm run build && npx wrangler pages deploy dist --project-name bakusoku --commit-dirty=true)"
+      "Bash(cd C:/Users/all/develop/expo/bakusoku/apps/web && npm run build && npx wrangler pages deploy dist --project-name bakusoku --commit-dirty=true)",
+      "Bash(find /c/Users/all/develop/expo/bakusoku -maxdepth 3 -type f \\\\\\(-name *.wrangler* -o -name *worker* \\\\\\))",
+      "Bash(grep -r wrangler /c/Users/all/develop/expo/bakusoku --include=*.json --include=*.toml)",
+      "Bash(npm install:*)",
+      "Bash(curl -s \"https://bakusai.com/bbstop/acode=1/ctgid=1/\" -H \"User-Agent: Mozilla/5.0 \\(iPhone; CPU iPhone OS 17_0 like Mac OS X\\)\")",
+      "Bash(curl -s http://localhost:8787/api/status)",
+      "Bash(python3 -m json.tool)",
+      "WebFetch(domain:www.apple.com)",
+      "Bash(curl:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''cloudflareDetected:'''', d[''''cloudflareDetected'''']\\); [print\\(c[''''name''''], c[''''hasCfHeaders''''], c.get\\(''''serverHeader'''',''''N/A''''\\)\\) for c in d[''''checks'''']]\")",
+      "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\);const j=JSON.parse\\(d\\);console.log\\(''''cloudflareDetected:'''',j.cloudflareDetected\\);j.checks.forEach\\(c=>console.log\\(c.name,c.hasCfHeaders,''''serverHeader'''' in c\\)\\)\")",
+      "Bash(npm run:*)"
     ]
   }
 }
