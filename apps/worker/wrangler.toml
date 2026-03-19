@@ -1,0 +1,10 @@
+name = "bakusoku-monitor"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+
+[triggers]
+crons = ["0 */6 * * *"]
+
+[[kv_namespaces]]
+binding = "STATUS_KV"
+id = "f0321bdd280949e18c3d6f23c562ee12"

@@ -1,6 +1,6 @@
 # 進捗管理 — BakuSoku（爆速）
 
-最終更新: 2026-03-11
+最終更新: 2026-03-19
 
 [Sukikira - GitHub](https://github.com/kiyohken2000/sukikira)
 
@@ -16,7 +16,8 @@
 | 3. 画面実装（閲覧系） | **完了** | BoardList / ThreadList / ThreadDetail / Search / Settings / History / Favorites / NgWords |
 | 4. 投稿 | 一部完了 | ログイン不要の匿名投稿 UI 実装済み・EULA 同意フロー実装済み |
 | 5. UX 強化 | 進行中 | 各種機能実装済み（下記参照） |
-| 6. リリース準備 | 未着手 | LP スケルトンのみ作成済み |
+| 6. リリース準備 | 進行中 | LP・ストアメタデータ・ステータス監視 |
+| 7. 監視 | **完了** | Cloudflare Workers でパーサー稼働状況の定期チェック |
 | — | **後回し** | ログイン機能・Good/Bad 投票・AuthContext（ログイン必須機能は全て保留） |
 
 ---
@@ -134,9 +135,24 @@
 - [x] スプラッシュスクリーン
 - [x] ランディングページ（`apps/web/`、Cloudflare Pages）
 - [x] プライバシーポリシー
-- [[x] ストアメタデータ
+- [x] ストアメタデータ
+- [x] ポートフォリオ追加（`data.js`）
+- [x] Qiita 紹介記事作成（`docs/QIITA_ARTICLE.md`）
 - [ ] App Store 申請
 - [ ] Google Play 申請
+
+---
+
+## フェーズ 7: 監視（パーサーヘルスチェック）
+
+- [x] Cloudflare Worker 作成（`apps/worker/`）
+- [x] bakusai.js からパーサーを抽出（`apps/worker/src/parsers.js`）
+- [x] 7項目のヘルスチェック実装（parseAreaTop / parseBoards / parseThreadList / parseThread / parseSearch / getResShow / parseFormFields）
+- [x] Cloudflare チャレンジページ検出（HTML ベース）
+- [x] Workers KV にステータス保存、`/api/status` で JSON 公開
+- [x] Cron Trigger（6時間ごと自動チェック）
+- [x] ステータスページ（`/#/status`）— Apple System Status 風デザイン
+- [x] ランディングページのフッターからリンク
 
 ---
 
@@ -164,3 +180,6 @@
 | 2026-03-11 | 画像ボード対応（weather_thr_list_box・photograph_thr_list_wrapper 専用パーサー追加） |
 | 2026-03-16 | rw=1 ページで paging_nex_res_and_button が欠落する事例を確認（UA別HTML比較）。同一 tid の rw=1 リンクから次ページを推測するフォールバックを追加。 |
 | 2026-03-16 | 一部ページで commentTime が欠落し追加読み込みが止まる問題を調査。commentTime が無い場合に日付文字列でフォールバックするパーサーを追加。 |
+| 2026-03-19 | ポートフォリオ（data.js）にBakuSoku追加、Qiita紹介記事作成（docs/QIITA_ARTICLE.md） |
+| 2026-03-19 | パーサーヘルスチェック監視システム構築（Cloudflare Worker + KV + Cron Trigger 6時間ごと） |
+| 2026-03-19 | ステータスページ追加（/#/status）— Apple System Status 風、フッターからリンク |

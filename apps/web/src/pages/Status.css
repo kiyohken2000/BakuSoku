@@ -1,0 +1,272 @@
+/* ========================================
+   Status Page — Apple System Status 風
+   ======================================== */
+
+.st-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a0a;
+  color: #e5e5e5;
+}
+
+/* ---------- Header ---------- */
+.st-header {
+  border-bottom: 1px solid #1a1a1a;
+  padding: 0 24px;
+}
+
+.st-header-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+}
+
+.st-back {
+  color: #f97316;
+  text-decoration: none;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.st-back:hover {
+  opacity: 0.7;
+}
+
+.st-header h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ---------- Main ---------- */
+.st-main {
+  flex: 1;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* ---------- Summary ---------- */
+.st-summary {
+  margin-bottom: 40px;
+}
+
+.st-summary-text {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.st-summary-text.muted {
+  color: #4b5563;
+}
+
+.st-summary-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.st-summary-banner.ok {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.st-summary-banner.ng {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+
+.st-cf-warn {
+  margin-top: 12px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  color: #fde68a;
+  font-size: 0.85rem;
+}
+
+.st-updated {
+  margin-top: 16px;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* ---------- Status Icon ---------- */
+.st-icon {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.st-icon.ok {
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+.st-icon.ng {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+/* ---------- Service List ---------- */
+.st-services {
+  margin-bottom: 40px;
+}
+
+.st-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #1f1f1f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.st-item {
+  border-bottom: 1px solid #1f1f1f;
+}
+
+.st-item:last-child {
+  border-bottom: none;
+}
+
+.st-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  color: #e5e5e5;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.st-item-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.st-item-name {
+  flex: 1;
+}
+
+.st-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #6b7280;
+  border-bottom: 2px solid #6b7280;
+  transform: rotate(45deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.st-chevron.open {
+  transform: rotate(-135deg);
+}
+
+/* ---------- Detail (expanded) ---------- */
+.st-item-detail {
+  padding: 0 20px 16px 42px;
+}
+
+.st-item-desc {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.st-detail-grid {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 4px 12px;
+  font-size: 0.8rem;
+}
+
+.st-detail-grid dt {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.st-detail-grid dd {
+  color: #9ca3af;
+  margin: 0;
+  word-break: break-all;
+}
+
+.st-detail-grid .val-ok {
+  color: #22c55e;
+}
+
+.st-detail-grid .val-ng {
+  color: #ef4444;
+}
+
+/* ---------- Note ---------- */
+.st-note {
+  padding: 20px;
+  background: #111;
+  border-radius: 12px;
+  margin-bottom: 40px;
+}
+
+.st-note p {
+  color: #6b7280;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ---------- Footer ---------- */
+.st-footer {
+  text-align: center;
+  padding: 24px;
+  border-top: 1px solid #1a1a1a;
+  font-size: 0.85rem;
+}
+
+.st-footer a {
+  color: #f97316;
+  text-decoration: none;
+}
+
+.st-footer a:hover {
+  opacity: 0.7;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .st-main {
+    padding: 24px 16px;
+  }
+
+  .st-item-header {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .st-item-detail {
+    padding: 0 16px 12px 36px;
+  }
+
+  .st-detail-grid {
+    grid-template-columns: 70px 1fr;
+  }
+}

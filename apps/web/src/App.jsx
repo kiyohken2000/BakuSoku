@@ -3,6 +3,7 @@ import './App.css'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import Support from './pages/Support'
+import Status from './pages/Status'
 import iconImg from './assets/imsages/icon.png'
 import badgeAppStore from './assets/imsages/badges/appstore.png'
 import badgeGooglePlay from './assets/imsages/badges/googleplay.png'
@@ -195,6 +196,8 @@ function Landing() {
           <a href="#/terms">利用規約</a>
           {' / '}
           <a href="#/support">サポート</a>
+          {' / '}
+          <a href="#/status">システム状況</a>
         </p>
         <p>
           BakuSoku は爆サイ.com の非公式アプリです。爆サイ.com
@@ -211,6 +214,7 @@ function App() {
   if (path === '/privacy') return <Privacy />
   if (path === '/terms') return <Terms />
   if (path === '/support') return <Support />
+  if (path === '/status') return <Status />
   return <Landing />
 }
 
