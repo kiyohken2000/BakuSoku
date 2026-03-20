@@ -55,6 +55,7 @@ export default function ThreadDetail() {
     myPosts,
     addMyPosts,
     isSettingsLoaded,
+    fs,
   } = useSettings()
 
   // スレ固有の上書き設定があればそちらを優先、なければグローバルデフォルトを使用
@@ -461,7 +462,7 @@ export default function ThreadDetail() {
     (body) => {
       const parts = body.split(/(>>\d+)/g)
       return (
-        <Text style={[styles.body, { color: theme.text }]} selectable>
+        <Text style={[styles.body, { color: theme.text, fontSize: fs(14), lineHeight: fs(20) }]} selectable>
           {parts.map((part, idx) => {
             const m = part.match(/^>>(\d+)$/)
             if (m) {
@@ -480,7 +481,7 @@ export default function ThreadDetail() {
         </Text>
       )
     },
-    [theme, responses],
+    [theme, responses, fs],
   )
 
   const openPostModalWithEulaCheck = (replyRrid = null) => {
@@ -727,7 +728,7 @@ export default function ThreadDetail() {
       >
         <View style={styles.responseHeader}>
           <Text
-            style={[styles.rrid, { color: theme.accent }]}
+            style={[styles.rrid, { color: theme.accent, fontSize: fs(12) }]}
             onPress={() => onRridPress(item.rrid)}
             suppressHighlighting
           >#{item.rrid}</Text>
@@ -744,8 +745,8 @@ export default function ThreadDetail() {
           )}
           {isMyPost && <Text style={styles.myPostBadge}>自分</Text>}
           {isReplyToMe && <Text style={styles.replyToMeBadge}>返信</Text>}
-          <Text style={[styles.name, { color: theme.subText }]}>{item.name}</Text>
-          <Text style={[styles.date, { color: theme.subText }]}>{item.date}</Text>
+          <Text style={[styles.name, { color: theme.subText, fontSize: fs(12) }]}>{item.name}</Text>
+          <Text style={[styles.date, { color: theme.subText, fontSize: fs(11) }]}>{item.date}</Text>
         </View>
         {(() => {
           // rrid=0 の場合、body に埋め込まれたマーカーから imageUrl/sourceUrl を復元
@@ -1322,14 +1323,14 @@ export default function ThreadDetail() {
                     <View key={r.rrid} style={[styles.replyListItem, { borderBottomColor: theme.border }]}>
                       <View style={styles.replyListItemHeader}>
                         <Text
-                          style={[styles.replyListRrid, { color: theme.accent }]}
+                          style={[styles.replyListRrid, { color: theme.accent, fontSize: fs(12) }]}
                           onPress={() => { setReplyListTarget(null); onAnchorPress(r.rrid) }}
                           suppressHighlighting
                         >
                           #{r.rrid}
                         </Text>
-                        <Text style={[styles.replyListName, { color: theme.subText }]}>{r.name}</Text>
-                        <Text style={[styles.replyListDate, { color: theme.subText }]}>{r.date}</Text>
+                        <Text style={[styles.replyListName, { color: theme.subText, fontSize: fs(12) }]}>{r.name}</Text>
+                        <Text style={[styles.replyListDate, { color: theme.subText, fontSize: fs(11) }]}>{r.date}</Text>
                       </View>
                       {renderBodyWithAnchors(r.body)}
                     </View>
@@ -1377,11 +1378,11 @@ export default function ThreadDetail() {
             ) : currentAnchor?.response ? (
               <>
                 <View style={[styles.anchorHeader, { borderBottomColor: theme.border }]}>
-                  <Text style={[styles.anchorRrid, { color: theme.accent }]}>
+                  <Text style={[styles.anchorRrid, { color: theme.accent, fontSize: fs(13) }]}>
                     #{currentAnchor.response.rrid}
                   </Text>
-                  <Text style={[styles.anchorName, { color: theme.subText }]}>{currentAnchor.response.name}</Text>
-                  <Text style={[styles.anchorDate, { color: theme.subText }]}>{currentAnchor.response.date}</Text>
+                  <Text style={[styles.anchorName, { color: theme.subText, fontSize: fs(12) }]}>{currentAnchor.response.name}</Text>
+                  <Text style={[styles.anchorDate, { color: theme.subText, fontSize: fs(11) }]}>{currentAnchor.response.date}</Text>
                 </View>
                 <ScrollView
                   style={styles.anchorBodyScroll}

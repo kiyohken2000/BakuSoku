@@ -23,6 +23,7 @@ export default function Favorites() {
     favorites, removeFavorite,
     favoriteThreads, removeFavoriteThread,
     readSet,
+    fs,
   } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
@@ -195,8 +196,8 @@ export default function Favorites() {
               style={[styles.row, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
             >
               <TouchableOpacity style={styles.rowMain} onPress={() => onPressBoard(item)} activeOpacity={0.7}>
-                <Text style={[styles.boardName, { color: theme.accent }]}>{item.name}</Text>
-                <Text style={[styles.area, { color: theme.subText }]}>
+                <Text style={[styles.boardName, { color: theme.accent, fontSize: fs(15) }]}>{item.name}</Text>
+                <Text style={[styles.area, { color: theme.subText, fontSize: fs(11) }]}>
                   {AREA_NAMES[item.acode] || ''}
                 </Text>
               </TouchableOpacity>
@@ -230,10 +231,10 @@ export default function Favorites() {
                 style={[styles.row, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}
               >
                 <TouchableOpacity style={styles.rowMain} onPress={() => onPressThread(item)} activeOpacity={0.7}>
-                  <Text style={[styles.boardName, { color: theme.accent }]} numberOfLines={2}>
+                  <Text style={[styles.boardName, { color: theme.accent, fontSize: fs(15) }]} numberOfLines={2}>
                     {item.title}
                   </Text>
-                  <Text style={[styles.area, { color: theme.subText }]}>
+                  <Text style={[styles.area, { color: theme.subText, fontSize: fs(11) }]}>
                     {AREA_NAMES[item.acode] || ''}
                   </Text>
                 </TouchableOpacity>

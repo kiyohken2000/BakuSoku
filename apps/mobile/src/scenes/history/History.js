@@ -27,6 +27,7 @@ export default function History() {
     favoriteThreads, addFavoriteThread, removeFavoriteThread,
     readSet,
     clearThreadState,
+    fs,
   } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
@@ -176,10 +177,10 @@ export default function History() {
               activeOpacity={0.7}
             >
               <View style={styles.rowMain}>
-                <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
+                <Text style={[styles.title, { color: theme.text, fontSize: fs(15) }]} numberOfLines={2}>
                   {item.title}
                 </Text>
-                <Text style={[styles.meta, { color: theme.subText }]}>
+                <Text style={[styles.meta, { color: theme.subText, fontSize: fs(11) }]}>
                   {AREA_NAMES[item.acode] || ''}{' · '}{formatDate(item.at)}
                 </Text>
               </View>

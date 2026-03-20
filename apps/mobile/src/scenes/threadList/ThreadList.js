@@ -39,6 +39,7 @@ export default function ThreadList() {
     readHistory,
     setReadHistory,
     clearThreadState,
+    fs,
   } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
@@ -165,7 +166,7 @@ export default function ThreadList() {
       >
         <View style={styles.titleRow}>
           <Text
-            style={[styles.threadTitle, { color: isRead ? theme.subText : theme.text }]}
+            style={[styles.threadTitle, { color: isRead ? theme.subText : theme.text, fontSize: fs(14) }]}
             numberOfLines={2}
           >
             {item.title}
@@ -177,9 +178,9 @@ export default function ThreadList() {
           )}
         </View>
         <View style={styles.threadMeta}>
-          <Text style={[styles.metaText, { color: theme.subText }]}>{item.updatedAt}</Text>
+          <Text style={[styles.metaText, { color: theme.subText, fontSize: fs(11) }]}>{item.updatedAt}</Text>
           <View style={styles.metaRight}>
-            <Text style={[styles.metaText, { color: theme.accent }]}>
+            <Text style={[styles.metaText, { color: theme.accent, fontSize: fs(11) }]}>
               💬 {item.resCount}
             </Text>
           </View>

@@ -38,6 +38,8 @@ export const SettingsContextProvider = ({ children }) => {
   const [threadReadModes, setThreadReadModesState] = useState({})
   // 自分が投稿したレスの rrid 一覧 { [tid]: number[] }
   const [myPosts, setMyPostsState] = useState({})
+  // 文字サイズ: 'small' | 'medium' | 'large' | 'xlarge'
+  const [fontSizeLevel, setFontSizeLevelState] = useState('medium')
 
   useEffect(() => {
     ;(async () => {
@@ -55,6 +57,7 @@ export const SettingsContextProvider = ({ children }) => {
       setReadPositionsState(await load('@bakusai_readpos', {}))
       setThreadReadModesState(await load('@bakusai_thread_read_modes', {}))
       setMyPostsState(await load('@bakusai_my_posts', {}))
+      setFontSizeLevelState(await load('@bakusai_font_size', 'medium'))
       setIsSettingsLoaded(true)
     })()
   }, [])
@@ -213,6 +216,16 @@ export const SettingsContextProvider = ({ children }) => {
     save('@bakusai_readpos', next)
   }
 
+  const setFontSizeLevel = (v) => {
+    setFontSizeLevelState(v)
+    save('@bakusai_font_size', v)
+  }
+
+  // 文字サイズスケール: small=0.85, medium=1.0, large=1.15, xlarge=1.3
+  const FONT_SCALES = { small: 0.85, medium: 1.0, large: 1.15, xlarge: 1.3 }
+  const fontScale = FONT_SCALES[fontSizeLevel] || 1.0
+  const fs = (size) => Math.round(size * fontScale)
+
   // すべての設定・データをデフォルト値にリセット（AsyncStorage は呼び出し元でクリア済み前提）
   const resetAllSettings = () => {
     setAcodeState(DEFAULT_ACODE)
@@ -229,6 +242,7 @@ export const SettingsContextProvider = ({ children }) => {
     setReadPositionsState({})
     setThreadReadModesState({})
     setMyPostsState({})
+    setFontSizeLevelState('medium')
   }
 
   // 成人・ギャンブルカテゴリ表示判定
@@ -275,6 +289,10 @@ export const SettingsContextProvider = ({ children }) => {
         setThreadReadMode,
         myPosts,
         addMyPosts,
+        fontSizeLevel,
+        setFontSizeLevel,
+        fontScale,
+        fs,
         resetAllSettings,
       }}
     >

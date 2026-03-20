@@ -19,7 +19,7 @@ import { useTheme } from 'contexts/ThemeContext'
 
 export default function Search() {
   const navigation = useNavigation()
-  const { acode } = useSettings()
+  const { acode, fs } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
   const inputRef = useRef(null)
@@ -187,7 +187,7 @@ export default function Search() {
               onPress={() => onResultPress(item)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.resultText, { color: theme.text }]} numberOfLines={3}>
+              <Text style={[styles.resultText, { color: theme.text, fontSize: fs(14) }]} numberOfLines={3}>
                 {item.title}
               </Text>
               <View style={styles.resultMeta}>

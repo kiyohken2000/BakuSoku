@@ -766,12 +766,36 @@ export async function getAreaTop(acode) {
   const adult = parseAreaTop(adultHtml, regionName)
   const gamble = parseAreaTop(gambleHtml, regionName)
 
+  // categoryBar セクションから追加カテゴリを抽出（R18・総合など、bbstop リンクを持たないセクション）
+  // areatop にはランキング等の無関係な categoryBar が多いため、adult/gamble の HTML のみ対象
+  const parseCategoryBars = (html) => {
+    const extra = []
+    const re = /<div\s+class="categoryBar"[^>]*>([\s\S]*?)<\/div>/g
+    let cm
+    while ((cm = re.exec(html)) !== null) {
+      const name = stripTags(cm[1]).trim()
+      if (!name) continue
+      const afterHtml = html.substring(cm.index + cm[0].length)
+      const nextCatBar = afterHtml.indexOf('class="categoryBar"')
+      const section = nextCatBar > 0 ? afterHtml.substring(0, nextCatBar) : afterHtml.substring(0, 3000)
+      if (/href="\/bbstop\//.test(section)) continue
+      const boardMatch = /href="\/thr_tl\/acode=(\d+)\/ctgid=(\d+)\//.exec(section)
+      if (boardMatch) {
+        extra.push({ acode: parseInt(boardMatch[1], 10), ctgid: parseInt(boardMatch[2], 10), name })
+      }
+    }
+    return extra
+  }
+
+  const adultBarCats = parseCategoryBars(adultHtml)
+  const gambleBarCats = parseCategoryBars(gambleHtml)
+
   // カテゴリを重複なくマージ（成人・ギャンブルは末尾に追加）
   const allCategories = [...main.categories]
   const allBoardsByCtgid = { ...main.boardsByCtgid }
   const restrictedCtgids = new Set()
 
-  for (const cat of [...adult.categories, ...gamble.categories]) {
+  for (const cat of [...adult.categories, ...gamble.categories, ...adultBarCats, ...gambleBarCats]) {
     restrictedCtgids.add(cat.ctgid)
     if (!allCategories.find((c) => c.ctgid === cat.ctgid)) {
       allCategories.push(cat)

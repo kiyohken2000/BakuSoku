@@ -20,7 +20,7 @@ import { useTheme } from 'contexts/ThemeContext'
 
 // ─── サブコンポーネント（再レンダー抑制） ────────────────────────────────
 
-const BoardItem = React.memo(({ item, isFav, onPress, theme }) => (
+const BoardItem = React.memo(({ item, isFav, onPress, theme, fs }) => (
   <TouchableOpacity
     style={[
       styles.boardItem,
@@ -29,7 +29,7 @@ const BoardItem = React.memo(({ item, isFav, onPress, theme }) => (
     onPress={() => onPress(item)}
     activeOpacity={0.7}
   >
-    <Text style={[styles.boardName, { color: isFav ? theme.accent : theme.text }]}>
+    <Text style={[styles.boardName, { color: isFav ? theme.accent : theme.text, fontSize: fs(15) }]}>
       {item.name}
     </Text>
     <FontIcon name="chevron-right" size={13} color={theme.subText} />
@@ -67,7 +67,7 @@ const SectionHeader = React.memo(({ section, theme, collapsed, onToggle }) => (
 
 export default function BoardList() {
   const navigation = useNavigation()
-  const { acode, setAcode, favorites, showRestricted } = useSettings()
+  const { acode, setAcode, favorites, showRestricted, fs } = useSettings()
   const { theme, isDark } = useTheme()
   const insets = useSafeAreaInsets()
 
@@ -164,8 +164,8 @@ export default function BoardList() {
   const keyExtractor = useCallback((item) => String(item.bid), [])
 
   const renderItem = useCallback(({ item, section }) => (
-    <BoardItem item={item} isFav={!!section.isFav} onPress={onBoardPress} theme={theme} />
-  ), [onBoardPress, theme])
+    <BoardItem item={item} isFav={!!section.isFav} onPress={onBoardPress} theme={theme} fs={fs} />
+  ), [onBoardPress, theme, fs])
 
   const renderSectionHeader = useCallback(({ section }) => (
     <SectionHeader

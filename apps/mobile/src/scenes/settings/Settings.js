@@ -31,6 +31,7 @@ export default function Settings() {
     ngWords,
     readFromStart, setReadFromStart,
     memo, setMemo,
+    fontSizeLevel, setFontSizeLevel,
     resetAllSettings,
   } = useSettings()
   const { theme, isDark, toggleTheme } = useTheme()
@@ -98,6 +99,34 @@ export default function Settings() {
             trackColor={{ false: '#e5e7eb', true: '#f97316' }}
             thumbColor="#fff"
           />
+        </View>
+        <View style={[row, { flexDirection: 'column', alignItems: 'flex-start' }]}>
+          <Text style={[styles.rowLabel, { color: theme.text, marginBottom: 10 }]}>文字サイズ</Text>
+          <View style={styles.fontSizeRow}>
+            {[
+              { key: 'small', label: '小' },
+              { key: 'medium', label: '中' },
+              { key: 'large', label: '大' },
+              { key: 'xlarge', label: '最大' },
+            ].map(({ key, label }) => (
+              <TouchableOpacity
+                key={key}
+                style={[
+                  styles.fontSizeChip,
+                  { borderColor: key === fontSizeLevel ? theme.accent : theme.border },
+                  key === fontSizeLevel && { backgroundColor: theme.accent },
+                ]}
+                onPress={() => setFontSizeLevel(key)}
+              >
+                <Text style={[
+                  styles.fontSizeChipText,
+                  { color: key === fontSizeLevel ? '#fff' : theme.text },
+                ]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* 地域 */}
@@ -326,4 +355,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   clearBtnText: { fontSize: 14, fontWeight: '600' },
+  fontSizeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  fontSizeChip: {
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+  },
+  fontSizeChipText: { fontSize: 13 },
 })
