@@ -30,7 +30,8 @@
       "Bash(node -e \"const d=require\\(''''fs''''\\).readFileSync\\(0,''''utf8''''\\);const j=JSON.parse\\(d\\);console.log\\(''''cloudflareDetected:'''',j.cloudflareDetected\\);j.checks.forEach\\(c=>console.log\\(c.name,c.hasCfHeaders,''''serverHeader'''' in c\\)\\)\")",
       "Bash(npm run:*)",
       "Bash(python:*)",
-      "Bash(find /c/Users/all/develop/expo/bakusoku/apps/mobile/src/scenes -type f -name \"*.js\" -exec basename {})"
+      "Bash(find /c/Users/all/develop/expo/bakusoku/apps/mobile/src/scenes -type f -name \"*.js\" -exec basename {})",
+      "WebFetch(domain:bakusoku-monitor.votepurchase.workers.dev)"
     ]
   }
 }
