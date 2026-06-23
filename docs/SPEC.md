@@ -184,7 +184,7 @@ Disallow: /
 |--------------------------|-------------------|
 | Cloudflare が UA+ヘッダー組み合わせでボット判定→空ボディ | **Cloudflare なし。発生しない** |
 | `?nxc=` ページネーションを WAF が狙い撃ちブロック | **WAF なし。URL ベースのページネーションが正常動作** |
-| UA バージョンが古いとブロック | **UA チェックが緩い。固定 UA で OK** |
+| UA バージョンが古いとブロック | **バージョン依存ではなく `iPhone` 文字列＋ヘッダー不足で 404（2026-06〜）。Android UA で回避中。詳細は「共通ヘッダー」節参照** |
 | Turnstile CAPTCHA で WebView プロキシが使えない | **CAPTCHA なし** |
 | Workers プロキシも Cloudflare にブロック | **Cloudflare なし。そもそもプロキシ不要** |
 | アプリ公開翌日に WAF ルール変更（運営による対策疑惑） | **リスクは残るが、既存専ブラが長年動作中の実績あり** |
@@ -974,8 +974,39 @@ const AJAX_HEADERS = {
 }
 ```
 
-UA ローテーションは不要だが、**iPhone を含む UA は 2026-06 以降サーバ側で 404 にされる**ため Android Chrome UA を使う。
+UA ローテーションは不要だが、**`iPhone` を含む UA は 2026-06 以降 WAF ルールで 404 にされる**ため Android Chrome UA を使う。
 UA なしだとSP向けHTMLが返らないため、必ず Mobile UA を設定すること。
+
+### 2026-06 の WAF ルール挙動（検証済み）
+
+bakusai は「`iPhone` を含む UA」を一律に弾いているわけではなく、**「`iPhone` UA × ブラウザらしい署名ヘッダーが無い」リクエストを 404 で返す** ルールを 2026-06 頃から運用している。
+
+| 条件 | 結果 |
+|---|---|
+| iPhone Safari UA（最新 / 旧）+ 最小ヘッダー | **404** |
+| iPhone Safari UA + `Sec-Fetch-*` / `Upgrade-Insecure-Requests` / `Accept-Encoding` | 200 |
+| Android Chrome UA + 最小ヘッダー | 200 |
+| 実機 iPhone Safari（ブラウザ） | 200（`Sec-Fetch-*` 等が自動付与されるため） |
+
+つまり「同じ iPhone なのに Safari では見れるのに自作アプリでは 404」という現象は、`fetch()` 系（Workers / React Native）が `Sec-Fetch-*` などの署名ヘッダーを自動付与しないことが原因。本アプリは UA を Android Chrome に揃えることでこのルールを回避している。
+
+### 板が表示されなくなった時のトラブルシュート手順
+
+ステータスページ（`/#/status`）が全 NG になった、または実機アプリで板一覧が空になった場合:
+
+1. **まずは UA の問題かを切り分ける** — 任意の bakusai ページを `curl` / `Invoke-WebRequest` で叩いて HTTP コードを確認:
+   - 現状の Android Chrome UA で 404 が返るなら、ルールが Android にも広がった可能性 → 次ステップへ
+   - 200 が返るなら UA 以外の原因（パーサー破損・経路変更等）
+2. **UA を変えて再試行** — 異なる UA で 200 が返るものを探す:
+   - Android Chrome の別バージョン
+   - iPhone Safari UA に `Sec-Fetch-Site: none`, `Sec-Fetch-Mode: navigate`, `Sec-Fetch-Dest: document`, `Sec-Fetch-User: ?1`, `Upgrade-Insecure-Requests: 1`, `Accept-Encoding: gzip, deflate, br` を添えたもの
+   - 一般的なデスクトップ Chrome UA
+3. **通る組み合わせが見つかったら 2 ヶ所を同期更新**:
+   - `apps/mobile/src/lib/bakusai.js` の `UA` / `HEADERS`
+   - `apps/worker/src/checks.js` の `UA` / `HEADERS`
+   - コメントに両者を同期させる旨を書いてあるので、片方だけ更新しないこと
+4. **Worker をデプロイし `/api/trigger` で即時再チェック** — `/api/status` は Cache API で最大 5 分キャッシュされるので、デプロイ直後は `?bust=<日付>` 等で回避するか 5 分待つ
+5. **mobile アプリは OTA 更新（`eas update`）で配信** — `apps/mobile/src/config.js` のバージョン番号を上げてから配信
 
 ---
 

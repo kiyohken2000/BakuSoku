@@ -183,3 +183,4 @@
 | 2026-03-19 | ポートフォリオ（data.js）にBakuSoku追加、Qiita紹介記事作成（docs/QIITA_ARTICLE.md） |
 | 2026-03-19 | パーサーヘルスチェック監視システム構築（Cloudflare Worker + KV + Cron Trigger 6時間ごと） |
 | 2026-03-19 | ステータスページ追加（/#/status）— Apple System Status 風、フッターからリンク |
+| 2026-06-23 | bakusai が `iPhone` UA × 署名ヘッダー無しのリクエストを 404 にする WAF ルールを運用開始したことを確認。Worker / mobile 両方の UA を Android Chrome (Pixel 8 / Chrome 132) に統一。SPEC.md にトラブルシュート手順を追記。 |
