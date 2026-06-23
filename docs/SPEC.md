@@ -962,7 +962,7 @@ apps/mobile/
 const BASE_URL = 'https://bakusai.com'
 
 const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.4 Mobile/15E148 Safari/604.1',
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   'Accept-Language': 'ja-JP,ja;q=0.9',
 }
@@ -974,8 +974,8 @@ const AJAX_HEADERS = {
 }
 ```
 
-Cloudflare 不使用のため、UA ローテーションは不要。固定 UA で十分。
-ただし UA なしだと 403 の報告があるため、必ず設定すること。
+UA ローテーションは不要だが、**iPhone を含む UA は 2026-06 以降サーバ側で 404 にされる**ため Android Chrome UA を使う。
+UA なしだとSP向けHTMLが返らないため、必ず Mobile UA を設定すること。
 
 ---
 

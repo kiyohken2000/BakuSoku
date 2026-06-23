@@ -3,7 +3,8 @@ import { runAllChecks } from './checks.js'
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Cache-Control': 'public, max-age=60',
+  // データは6時間ごとにしか更新されないので5分キャッシュで十分
+  'Cache-Control': 'public, max-age=300',
 }
 
 export default {
@@ -30,10 +31,19 @@ export default {
 
     // ステータス取得
     if (url.pathname === '/api/status') {
+      // Cache API で Worker 呼び出し回数を削減（無料プランの100k/日上限対策）
+      const cache = caches.default
+      const cacheKey = new Request(url.toString())
+      const cached = await cache.match(cacheKey)
+      if (cached) return cached
+
       const data = await env.STATUS_KV.get('latest')
-      return new Response(data || '{"checks":[],"checkedAt":null,"allOk":false,"cloudflareDetected":false}', {
-        headers: CORS_HEADERS,
-      })
+      const response = new Response(
+        data || '{"checks":[],"checkedAt":null,"allOk":false,"cloudflareDetected":false}',
+        { headers: CORS_HEADERS },
+      )
+      ctx.waitUntil(cache.put(cacheKey, response.clone()))
+      return response
     }
 
     // 手動トリガー（テスト・デバッグ用）
