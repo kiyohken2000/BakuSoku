@@ -965,6 +965,8 @@ const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Mobile Safari/537.36',
   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   'Accept-Language': 'ja-JP,ja;q=0.9',
+  // Sec-Fetch-Dest が無いと bakusai は p=N を無視してデフォルトページを返す（2026-06-26 検証）
+  'Sec-Fetch-Dest': 'document',
 }
 
 // AJAX 用（Good/Bad、投稿）
@@ -976,6 +978,7 @@ const AJAX_HEADERS = {
 
 UA ローテーションは不要だが、**`iPhone` を含む UA は 2026-06 以降 WAF ルールで 404 にされる**ため Android Chrome UA を使う。
 UA なしだとSP向けHTMLが返らないため、必ず Mobile UA を設定すること。
+さらに `Sec-Fetch-Dest: document` が無いとページネーション (`p=N`) が無視される。
 
 ### 2026-06 の WAF ルール挙動（検証済み）
 
@@ -989,6 +992,22 @@ bakusai は「`iPhone` を含む UA」を一律に弾いているわけではな
 | 実機 iPhone Safari（ブラウザ） | 200（`Sec-Fetch-*` 等が自動付与されるため） |
 
 つまり「同じ iPhone なのに Safari では見れるのに自作アプリでは 404」という現象は、`fetch()` 系（Workers / React Native）が `Sec-Fetch-*` などの署名ヘッダーを自動付与しないことが原因。本アプリは UA を Android Chrome に揃えることでこのルールを回避している。
+
+### 2026-06-26 のページネーション挙動（検証済み）
+
+UA / 404 の問題とは別に、bakusai は **`Sec-Fetch-Dest` ヘッダーが無いと `p=N` パラメータを無視してデフォルトページ（スレ一覧 10件 / レス 14件）を返す** ルールも持っている。
+
+| 条件 | `/thr_tl/.../p=5/` の結果 |
+|---|---|
+| Android Chrome UA + 最小ヘッダー（`Sec-Fetch-Dest` なし） | **常に固定ページが返る（p=N 無視）** |
+| Android Chrome UA + `Sec-Fetch-Dest: document` のみ追加 | p=5 のページが返る ✅ |
+| iPhone Safari UA + `Sec-Fetch-*` フルセット | p=5 のページが返る ✅ |
+
+検証結果（2026-06-26）:
+- `Sec-Fetch-Site` / `Sec-Fetch-Mode` / `Sec-Fetch-User` / `Upgrade-Insecure-Requests` は個別追加では効果なし
+- **`Sec-Fetch-Dest: document` 単体で十分** — 共通ヘッダーに追加する形で回避
+
+この挙動は本アプリの「無限スクロール時にスレ一覧が 10 件で止まる」「スレッド本文が 14 レスで止まる」という症状の原因。
 
 ### 板が表示されなくなった時のトラブルシュート手順
 

@@ -184,3 +184,4 @@
 | 2026-03-19 | パーサーヘルスチェック監視システム構築（Cloudflare Worker + KV + Cron Trigger 6時間ごと） |
 | 2026-03-19 | ステータスページ追加（/#/status）— Apple System Status 風、フッターからリンク |
 | 2026-06-23 | bakusai が `iPhone` UA × 署名ヘッダー無しのリクエストを 404 にする WAF ルールを運用開始したことを確認。Worker / mobile 両方の UA を Android Chrome (Pixel 8 / Chrome 132) に統一。SPEC.md にトラブルシュート手順を追記。 |
+| 2026-06-26 | スレ一覧が 10件・スレ本文が 14件で止まる現象を調査。bakusai は `Sec-Fetch-Dest` ヘッダー無しのリクエストに対し `p=N` を無視してデフォルトページを返す挙動。Worker / mobile の共通ヘッダーに `Sec-Fetch-Dest: document` を追加。あわせて `checkGetResShow` が削除済み rrid を引いた時に他の rrid へフォールバックするよう強化（rrid 750 削除済みで「レス個別表示」が常時 NG になっていた）。 |

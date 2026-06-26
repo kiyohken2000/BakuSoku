@@ -79,6 +79,9 @@ const getHeaders = (extra = {}) => ({
   'User-Agent': UA,
   Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+  // Sec-Fetch-Dest が無いと bakusai は p=N を無視してデフォルトページを返す
+  // (スレ一覧 10件/レス 14件で固定される現象の回避)
+  'Sec-Fetch-Dest': 'document',
   Cookie: cookieHeader(),
   ...extra,
 })

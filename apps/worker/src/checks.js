@@ -17,6 +17,9 @@ const HEADERS = {
   'User-Agent': UA,
   Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   'Accept-Language': 'ja,en-US;q=0.9,en;q=0.8',
+  // Sec-Fetch-Dest が無いと bakusai は p=N を無視してデフォルトページ
+  // (スレ一覧 10件/レス 14件) を返す。mobile (apps/mobile/src/lib/bakusai.js) と一致させること。
+  'Sec-Fetch-Dest': 'document',
 }
 
 /**
@@ -166,25 +169,43 @@ async function checkGetResShow(threadResult) {
       return result(name, false, 'no thread data available', 0, false, 0)
     }
 
-    const res = data.responses.find((r) => r.rrid > 0) || data.responses[0]
-    const rrid = res.rrid
     const bid = data.bid
     const tid = data.tid
     const acode = 3
     const ctgid = 104
 
-    const path = `/thr_res_show/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/rrid=${rrid}/`
-    const { html, httpStatus, hasCfHeaders, durationMs } = await fetchPage(path)
-    if (httpStatus !== 200) {
-      return result(name, false, `HTTP ${httpStatus}`, httpStatus, hasCfHeaders, durationMs)
+    // 削除済みレスを引いた場合に備え、最大 5 件まで rrid を順に試す
+    // (bakusai は削除済み rrid に対して title="エラー" の HTML を返し res_body を含まない)
+    const candidates = data.responses.filter((r) => r.rrid > 0).slice(0, 5)
+    if (candidates.length === 0) candidates.push(data.responses[0])
+
+    let lastHttpStatus = 0
+    let lastHasCfHeaders = false
+    let lastDurationMs = 0
+    let lastRrid = 0
+    let lastBodyLen = 0
+
+    for (const res of candidates) {
+      const rrid = res.rrid
+      const path = `/thr_res_show/acode=${acode}/ctgid=${ctgid}/bid=${bid}/tid=${tid}/rrid=${rrid}/`
+      const { html, httpStatus, hasCfHeaders, durationMs } = await fetchPage(path)
+      lastHttpStatus = httpStatus
+      lastHasCfHeaders = hasCfHeaders
+      lastDurationMs = durationMs
+      lastRrid = rrid
+      if (httpStatus !== 200) continue
+      // thr_res_show は id="res_block"（数字なし）で parseThread にマッチしない
+      // res_body の存在と中身でチェックする
+      const hasResBody = html.includes('class="res_body"')
+      const bodyMatch = html.match(/<div class="res_body"[^>]*>([\s\S]*?)<\/div>/)
+      const bodyText = bodyMatch ? bodyMatch[1].replace(/<[^>]*>/g, '').trim() : ''
+      lastBodyLen = bodyText.length
+      if (hasResBody && bodyText.length > 0) {
+        return result(name, true, `rrid: ${rrid}, bodyLen: ${bodyText.length}`, httpStatus, hasCfHeaders, durationMs)
+      }
     }
-    // thr_res_show は id="res_block"（数字なし）で parseThread にマッチしない
-    // res_body の存在と中身でチェックする
-    const hasResBody = html.includes('class="res_body"')
-    const bodyMatch = html.match(/<div class="res_body"[^>]*>([\s\S]*?)<\/div>/)
-    const bodyText = bodyMatch ? bodyMatch[1].replace(/<[^>]*>/g, '').trim() : ''
-    const ok = hasResBody && bodyText.length > 0
-    return result(name, ok, `rrid: ${rrid}, bodyLen: ${bodyText.length}`, httpStatus, hasCfHeaders, durationMs)
+
+    return result(name, false, `rrid: ${lastRrid}, bodyLen: ${lastBodyLen} (tried ${candidates.length})`, lastHttpStatus, lastHasCfHeaders, lastDurationMs)
   } catch (e) {
     return result(name, false, '', 0, false, 0, e.message)
   }
