@@ -105,39 +105,69 @@ async function checkParseThreadList() {
     return {
       ...result(name, ok, `threads: ${data.threads.length}`, httpStatus, hasCfHeaders, durationMs),
       _firstThread: firstThread,
+      _threads: data.threads,
     }
   } catch (e) {
-    return { ...result(name, false, '', 0, false, 0, e.message), _firstThread: null }
+    return { ...result(name, false, '', 0, false, 0, e.message), _firstThread: null, _threads: [] }
   }
 }
 
 async function checkParseThread(threadListResult) {
   const name = 'parseThread'
   try {
-    // スレッド一覧の結果からスレッドURLを取得
-    let path
-    if (threadListResult?._firstThread?.href) {
-      path = threadListResult._firstThread.href
-    } else {
-      // フォールバック: 東京雑談の適当なスレ一覧ページから最新ページ
-      path = '/thr_tl/acode=3/ctgid=104/bid=2244/'
-      const { html: listHtml } = await fetchPage(path)
+    // スレッド一覧から候補を組み立てる。
+    // 先頭がピン留めの告知/画像板/外部 acode スレのことがあり、これらは
+    // res_block を持たない特殊 HTML を返し responses:0 になるため、
+    // 「非ピン留め優先 → ピン留め」の順に最大 5 件試して responses>=1 を採用する。
+    let candidates = []
+    if (threadListResult?._threads && threadListResult._threads.length > 0) {
+      const list = threadListResult._threads.filter((t) => t?.href)
+      candidates = [...list.filter((t) => !t.isPinned), ...list.filter((t) => t.isPinned)]
+    } else if (threadListResult?._firstThread?.href) {
+      candidates = [threadListResult._firstThread]
+    }
+
+    if (candidates.length === 0) {
+      // フォールバック: 東京雑談の適当なスレ一覧ページから
+      const { html: listHtml } = await fetchPage('/thr_tl/acode=3/ctgid=104/bid=2244/')
       const listData = parseThreadList(listHtml)
-      if (listData.threads.length > 0) {
-        path = listData.threads[0].href
+      const list = listData.threads.filter((t) => t?.href)
+      candidates = [...list.filter((t) => !t.isPinned), ...list.filter((t) => t.isPinned)]
+    }
+
+    candidates = candidates.slice(0, 5)
+
+    let lastHttpStatus = 0
+    let lastHasCfHeaders = false
+    let lastDurationMs = 0
+    let lastData = null
+    let lastHtml = null
+
+    for (const cand of candidates) {
+      const { html, httpStatus, hasCfHeaders, durationMs } = await fetchPage(cand.href)
+      lastHttpStatus = httpStatus
+      lastHasCfHeaders = hasCfHeaders
+      lastDurationMs = durationMs
+      if (httpStatus !== 200) continue
+      const data = parseThread(html, 1)
+      lastData = data
+      lastHtml = html
+      if (data.responses.length >= 1) {
+        return {
+          ...result(name, true, `responses: ${data.responses.length}, tid: ${data.tid}`, httpStatus, hasCfHeaders, durationMs),
+          _threadData: data,
+          _threadHtml: html,
+        }
       }
     }
 
-    const { html, httpStatus, hasCfHeaders, durationMs } = await fetchPage(path)
-    if (httpStatus !== 200) {
-      return result(name, false, `HTTP ${httpStatus}`, httpStatus, hasCfHeaders, durationMs)
-    }
-    const data = parseThread(html, 1)
-    const ok = data.responses.length >= 1
+    const detail = lastData
+      ? `responses: 0, tid: ${lastData.tid || '(empty)'} (tried ${candidates.length})`
+      : `HTTP ${lastHttpStatus} (tried ${candidates.length})`
     return {
-      ...result(name, ok, `responses: ${data.responses.length}, tid: ${data.tid}`, httpStatus, hasCfHeaders, durationMs),
-      _threadData: data,
-      _threadHtml: html,
+      ...result(name, false, detail, lastHttpStatus, lastHasCfHeaders, lastDurationMs),
+      _threadData: lastData,
+      _threadHtml: lastHtml,
     }
   } catch (e) {
     return { ...result(name, false, '', 0, false, 0, e.message), _threadData: null, _threadHtml: null }
@@ -266,6 +296,7 @@ export async function runAllChecks() {
   // 内部プロパティを除去
   for (const c of checks) {
     delete c._firstThread
+    delete c._threads
     delete c._threadData
     delete c._threadHtml
   }
