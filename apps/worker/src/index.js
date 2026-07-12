@@ -50,6 +50,9 @@ export default {
     if (url.pathname === '/api/trigger') {
       const status = await runAllChecks()
       await env.STATUS_KV.put('latest', JSON.stringify(status))
+      // /api/status のエッジキャッシュを破棄（stale データを配り続けないように）
+      const statusUrl = new URL('/api/status', url.origin)
+      await caches.default.delete(new Request(statusUrl.toString()))
       return new Response(JSON.stringify(status, null, 2), {
         headers: CORS_HEADERS,
       })
