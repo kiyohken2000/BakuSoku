@@ -5,8 +5,6 @@ import Terms from './pages/Terms'
 import Support from './pages/Support'
 import Status from './pages/Status'
 import iconImg from './assets/imsages/icon.png'
-import badgeAppStore from './assets/imsages/badges/appstore.png'
-import badgeGooglePlay from './assets/imsages/badges/googleplay.png'
 import ss1 from './assets/imsages/screenshots/1.boards.jpg'
 import ss1a from './assets/imsages/screenshots/1.boards_area.jpg'
 import ss2 from './assets/imsages/screenshots/2.threads.jpg'
@@ -112,15 +110,12 @@ function Landing() {
         <p className="tagline">
           爆サイ.com をもっと快適に。
           <br />
-          広告なし・ダークモード対応の非公式ブラウザアプリ。
+          広告なし・ダークモード対応の非公式ブラウザアプリでした。
         </p>
-        <div className="hero-badges">
-          <a href="https://apps.apple.com/jp/app/id6760444481" target="_blank" rel="noopener noreferrer">
-            <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge active" />
-          </a>
-          <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
-            <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
-          </a>
+        <div className="eos-notice">
+          <strong>配信を終了しました</strong>
+          爆サイ.com 運営元からの申し入れを受け、App Store・Google Play での配信およびサポート受付を終了しました。
+          お問い合わせにはお答えできません。詳しくは<a href="#/support">サポートページ</a>をご覧ください。
         </div>
         <div className="pill-features">
           <span className="pill">
@@ -166,20 +161,6 @@ function Landing() {
               <p>{f.desc}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* ===== CTA ===== */}
-      <section className="cta" id="download">
-        <h2>今すぐダウンロード</h2>
-        <p>爆サイ.com をストレスなく楽しもう。</p>
-        <div className="hero-badges">
-          <a href="https://apps.apple.com/jp/app/id6760444481" target="_blank" rel="noopener noreferrer">
-            <img src={badgeAppStore} alt="App Storeからダウンロード" className="store-badge active" />
-          </a>
-          <a href="https://play.google.com/store/apps/details?id=net.votepurchase.bakusoku" target="_blank" rel="noopener noreferrer">
-            <img src={badgeGooglePlay} alt="Google Playで手に入れよう" className="store-badge active" />
-          </a>
         </div>
       </section>
 

@@ -89,3 +89,15 @@
 .legal-link:hover {
   text-decoration: underline;
 }
+
+.legal-notice {
+  padding: 20px 24px;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: 12px;
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.legal-notice h2 {
+  color: #f97316;
+  border-bottom-color: rgba(249, 115, 22, 0.3);
+}

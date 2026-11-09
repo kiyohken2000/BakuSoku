@@ -332,3 +332,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- End-of-service notice ---------- */
+.eos-notice {
+  max-width: 560px;
+  margin: 24px auto 0;
+  padding: 16px 20px;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  border-radius: 12px;
+  background: rgba(249, 115, 22, 0.08);
+  color: #d1d5db;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  text-align: left;
+}
+
+.eos-notice strong {
+  display: block;
+  color: #f97316;
+  margin-bottom: 4px;
+}
+
+.eos-notice a {
+  color: #f97316;
+}
